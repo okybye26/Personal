@@ -1,109 +1,150 @@
-const fs = require("fs-extra");
-const moment = require("moment-timezone");
+const axios = require("axios");
+
+const prefixes = ["bby", "janu", "babe", "bot", "sona", "bbu", "jaan"];
 
 module.exports = {
-  config: {
-    name: "bot2",
-    version: "1.0",
-    author: "xos Eren",
-    countDown: 5,
-    role: 0,
-    description: "Bot",
-    category: "no prefix",
-    guide: {
-      en: "{p}{n}",
-    },
-  },
+  config: {
+    name: "bot",
+    version: "1.6.9",
+    author: "Dipto",
+    role: 0,
+    description: {
+      en: "No prefix command.",
+    },
+    category: "ai",
+    guide: {
+      en: "Just type a prefix like 'bby' followed by your message.",
+    },
+  },
 
-  onStart: async function ({}) {},
+  onStart: async function () {
+    console.log("Bot command initialized.");
+  },
 
-  onChat: async function ({ api, event, args, Threads, usersData }) {
-    const data = await usersData.get(event.senderID);
-    const name = data.name;
-    const { threadID, messageID, senderID } = event;
-    const time = moment.tz("Asia/Dhaka").format("HH:mm:ss L");
-    const idgr = `${event.threadID}`;
+  // Helper function to remove a prefix
+  removePrefix: function (str, prefixes) {
+    for (const prefix of prefixes) {
+      if (str.startsWith(prefix)) {
+        return str.slice(prefix.length).trim();
+      }
+    }
+    return str;
+  },
 
-    const messages = [
-      " আমরা দারুণ রকমের দুঃখ সাজাই প্রবল ভালোবেসে..!😅💔",
-        "- আমি যখন একটু খুশি হওয়ার চেষ্টা করি, তখন দুঃখ এসে আবার আমাকে আঁকড়ে ধরে 😅💔",
-        " °°অনুভূতি প্রকাশ করতে নেই মানুষ নাটক মনে করে মজা নেয়°..! 😥💔🥀",
-        " কিছু মানুষ স্বল্প সময়ের জন্য আমাদের জীবনে আসে।কিন্তু দীর্ঘ সময় স্মৃতি রেখে যায়..!🙂💔",
-        "𝙴𝙸 𝙿𝙰𝙶𝙾𝙻 𝙴𝚃𝙾 𝙳𝙰𝙺𝙾𝚂 𝙺𝙴𝙽?",
-        " 𝙼𝚈𝙱 𝙸 𝙹𝚄𝚂𝚃 𝚆𝙰𝙽𝙽𝙰 𝙱𝙴 𝚈𝙾𝚄𝚁𝚂 ? 😌💝",
-        " 𝙸 𝚂𝙰𝚈 𝙸 𝙻𝙾𝚅𝙴 𝚈𝙾𝚄 𝙵𝙾𝚁𝙴𝚅𝙴𝚁💝🐼",
-        "য়ামরা কি ভন্দু হতে পারিহ?? নাহ্লে তার থেকে বেসি কিচু??😋",
-        " 𝚈𝚄𝙼𝙼𝚈 𝙱𝙱𝚈 𝚈𝙾𝚄 𝙰𝚁𝙴 𝚂𝙾 𝚂𝚆𝙴𝙴𝚃😋🤤",
-        "𝙰𝚌𝙲𝙲𝙰𝙷 𝙱𝙾𝙻𝙾 𝙰𝙼𝙺𝙴 𝙻𝙰𝙶𝙱𝙴 𝙽𝙰𝙺𝙸 𝚁𝚄𝚂𝚂𝙸𝙰𝙽 ?",
-        "তোর সাথে কথা নাই কারণ তুই অনেক লুচ্চা",
-        " এইখানে লুচ্চামি করলে লাথি দিবো কিন্তু",
-        "আমাকে চুমু দিবি 🫢🦋",
-        "হেহে বাবু আমার কাছে আসো 😘💋",
-        "আমি তোমাকে অনেক ভালোবাসি বাবু🥺💖",
-        "your chocolate বট এর help list dekhte type koron *help",
-        "কিরে বলদ তুই এইখানে 🙂",
-        " আমাকেq চিনো না জানু? মনু",
-        "hey bbe I'm your personal Based chatbot you ask me anything",
-        "AR asbo na tor kache",
-        "আমাকে ডাকলে ,আমি কিন্তু 𝐊𝐢𝐬𝐬 করে দিবো 😘",
-        "Hop beda dakos kn🥲",
-        "-তাবিজ কইরা হইলেও ফ্রেম এক্কান করমুই তাতে যা হই হোক-🤧🥱",
-        " ওই মামী আর ডাকিস না প্লিজ🥲",
-        " হ্যা বলো, শুনছি আমি",
-        "বলো কি করতে পারি তোমার জন্য😌 ",
-        "𝐁𝐨𝐭 না জানু,বলো কারন আমি সিংগেল 😌 ",
-        " I love you tuna🥺🥶",
-        "Tuma dew xanu😍😘 ",
-        " এত কাছেও এসো না,প্রেম এ পরে যাবো তো 🙈",
-        " দেখা হলে কাঠগোলাপ দিও..🤗",
-        "𝗕𝗲𝘀𝗵𝗶 𝗱𝗮𝗸𝗹𝗲 𝗮𝗺𝗺𝘂 𝗯𝗼𝗸𝗮 𝗱𝗲𝗯𝗮 𝘁𝗼__🥺 ",
-        "•-কিরে🫵 তরা নাকি  prem করস..😐🐸•আমারে একটা করাই দিলে কি হয়-🥺 ",
-        "Bolo Babu, তুমি কি আমাকে ভালোবাসো? 🙈💋 ",
-        "Single taka ki oporad🥺 ",
-        " Premer mora jole duve na😛",
-        "Ufff matha gorom kore disos😒 ",
-        "Boss ayan er chipay😜 ",
-        "bashi dakle boss hussain ke bole dimu😒 ",
-        "Xhipay atke gaci jan🥲 ",
-        "Washroom a🤣 ",
-        "bado maser kawwa police amar sawwa😞 ",
-        "I am single plz distrab me🥺🥲 ",
-        "𝗮𝗺𝗶 𝗯𝗼𝘁 𝗻𝗮 𝗮𝗺𝗮𝗸𝗲 𝗯𝗯𝘆 𝗯𝗼𝗹𝗼 𝗯𝗯𝘆!!😘 ",
-        "🍺 এই নাও জুস খাও..!𝗕𝗯𝘆 বলতে বলতে হাপায় গেছো না 🥲 ",
-        "𝗛𝗶𝗶 𝗶 𝗮𝗺 𝗯𝗼𝘁 𝗰𝗮𝗻 𝗶 𝗵𝗲𝗹𝗽 𝘆𝗼𝘂!🤖 ",
-        "𝗲𝘁𝗼 𝗯𝗼𝘁 𝗯𝗼𝘁 𝗻𝗮 𝗸𝗼𝗿𝗲 𝘁𝗮𝗸𝗮 𝗼 𝘁𝗼 𝗽𝗮𝘁𝗵𝗮𝘁𝗲 𝗽𝗮𝗿𝗼😒🥳🥳 ",
-        "𝘁𝗼𝗿𝗲 𝗺𝗮𝗿𝗮𝗿 𝗽𝗿𝗲𝗽𝗲𝗿𝗮𝘁𝗶𝗼𝗻 𝗻𝗶𝗰𝗵𝗶...!!.🫡 ",
-        "𝘂𝗺𝗺𝗮𝗵 𝗱𝗶𝗹𝗲 𝗹𝗼𝘃𝗲 𝘆𝗼𝘂 𝗸𝗼𝗺𝘂 𝗸𝗶𝗻𝘁𝘂😑 ",
-        " আমাকে ডাকলে ,আমি কিন্তু 𝐊𝐢𝐬𝐬 করে দিবো 😘",
-        " Bal falaw😩",
-        "Tapraiya dat falai demu🥴 ",
-        "He🤤bolo amar jan kmn aso🤭 ",
-        "Hmmm jan ummmmmmah🫣 ",
-        "Chup kor ato bot bot koros kn😬 ",
-        "Yes sir/mem😍 ",
-        "Assalamualikum☺️💖 ",
-        "Walaikumsalam😫🤓 ",
-        "Chaiya takos kn ki kobi kooo☹️ ",
-        "Onek boro beyadop re tui😒 ",
-        "Amar shate kew sex opps tex kore na😫 ",
-        "অনুমতি দিলাম-𝙋𝙧𝙤𝙥𝙤𝙨𝙚 কর বস কে-🐸😾🔪 ",
-        "বলো কি বলবা, সবার সামনে বলবা নাকি?🤭🤏 ",
-        "-আজ একটা বিন নেই বলে ফেসবুকের নাগিন-🤧-গুলোরে আমার বস Ayan ধরতে পারছে না-🐸🥲 ",
-        " তোর কি চোখে পড়ে না আমি ব্যাস্ত 😒🐱",
-        "বলো কি বলবা, চিপায় যাইয়া বলবা নাকি সবার সামনে বলবা ?🤭"
-    ];
+  onReply: async function ({ api, event }) {
+    if (event.type === "message_reply") {
+      try {
+        let reply = event.body.toLowerCase();
+        reply = this.removePrefix(reply, prefixes) || "bby";
 
-    const rand = messages[Math.floor(Math.random() * messages.length)];
+        // Updated URL instead of global.GoatBot.config.api
+        const response = await axios.get(
+          `https://www.noobs-api.rf.gd/dipto/baby?text=${encodeURIComponent(reply)}&senderID=${event.senderID}&font=1`
+        );
 
-    if (event.body.toLowerCase() === "🐥" || event.body.toLowerCase() === "🐣") {
-      return api.sendMessage("-  𝐔𝐟𝐟'𝐬 𝐀𝐦𝐚𝐫 𝐁𝐚𝐛𝐮 𝐓𝐚🐥", "- ইসস আমার সোনা বাবু টা 🙊", threadID);
-    }
+        const message = response.data.reply;
+        if (response.data.react) {
+          setTimeout(() => {
+            api.setMessageReaction(response.data.react, event.messageID, () => {}, true);
+          }, 400);
+        }
 
-    if (event.body.toLowerCase().startsWith("bot") || event.body.toLowerCase() === "Bot") {
-      const msg = {
-        body: `╭──────•◈•──────╮\n    🄷🅄🅂🅂🄰🄸🄽 🄱🄾🅃   \n\n ❄️Dᴇᴀʀ, ${name}\n 💌:${rand} \n\n╰──────•◈•──────╯ `,
-      };
-      return api.sendMessage(msg, threadID, messageID);
-    }
-  },
+        api.sendMessage(message, event.threadID, (err, info) => {
+          global.GoatBot.onReply.set(info.messageID, {
+            commandName: "bot",
+            type: "reply",
+            messageID: info.messageID,
+            author: event.senderID,
+            text: message,
+          });
+        }, event.messageID);
+      } catch (err) {
+        console.error(err.message);
+        api.sendMessage(" An error occurred.", event.threadID, event.messageID);
+      }
+    }
+  },
+
+  onChat: async function ({ api, event }) {
+    const randomReplies = ["Bolo jaan ki korte pari tmr jonno 🥹", "আর কত বার ডাকবা ,শুনছি তো 🤷🏻‍♀", "আম গাছে আম নাই ঢিল কেন মারো, তোমার সাথে প্রেম নাই বেবি কেন ডাকো 😒🫣", "দূরে যা, তোর কোনো কাজ নাই, শুধু 𝗯𝗯𝘆 𝗯𝗯𝘆 করিস 😉", "Hop beda😾,", "𝗕𝗯𝘆 𝗯𝗼𝗹𝗹𝗮 𝗽𝗮𝗽 𝗵𝗼𝗶𝗯𝗼,,😒😒", "𝗕𝗯𝘆 বলে অসম্মান করচ্ছিছ,😰😿", "ki kobi ko😒", "তোর বিয়ে হয় নি 𝗕𝗯𝘆 হইলো কিভাবে,,🙄", "𝗕𝗯𝘆 বললে চাকরি থাকবে না", "বার বার ডাকলে মাথা গরম হয় কিন্তু 😑😒", "বলো ফুলটুশি😘", "ভুলে জাও আমাকে 😞😞", "Ato gulo bby k samlate parsi nah 😫😫"];
+    const rand = randomReplies[Math.floor(Math.random() * randomReplies.length)];
+
+    const messageBody = event.body ? event.body.toLowerCase() : "";
+    const words = messageBody.split(" ");
+    const wordCount = words.length;
+
+    if (event.type !== "message_reply") {
+      let messageToSend = messageBody;
+      messageToSend = this.removePrefix(messageToSend, prefixes);
+
+      if (prefixes.some((prefix) => messageBody.startsWith(prefix))) {
+        setTimeout(() => {
+          api.setMessageReaction("😍", event.messageID, () => {}, true);
+        }, 400);
+
+        api.sendTypingIndicator(event.threadID, true);
+
+        if (event.senderID === api.getCurrentUserID()) return;
+
+        const msg = { body: rand };
+
+        if (wordCount === 1) {
+          setTimeout(() => {
+            api.sendMessage(msg, event.threadID, (err, info) => {
+              global.GoatBot.onReply.set(info.messageID, {
+                commandName: "bot",
+                type: "reply",
+                messageID: info.messageID,
+                author: event.senderID,
+                link: msg,
+              });
+            }, event.messageID);
+          }, 400);
+        } else {
+          words.shift(); // Removing the prefix
+          const remainingText = words.join(" ");
+
+          try {
+            // Updated URL instead of global.GoatBot.config.api
+            const response = await axios.get(
+              `https://www.noobs-api.rf.gd/dipto/baby?text=${encodeURIComponent(remainingText)}&senderID=${event.senderID}&font=1`
+            );
+            const message = response.data.reply;
+
+            if (response.data.react) {
+              setTimeout(() => {
+                api.setMessageReaction(
+                  response.data.react,
+                  event.messageID,
+                  () => {},
+                  true
+                );
+              }, 500);
+            }
+
+            api.sendMessage({ body: message }, event.threadID, (error, info) => {
+              global.GoatBot.onReply.set(info.messageID, {
+                commandName: this.config.name,
+                type: "reply",
+                messageID: info.messageID,
+                author: event.senderID,
+                link: message,
+              });
+            }, event.messageID);
+          } catch (err) {
+            console.error(err.message);
+            api.sendMessage(" An error occurred.", event.threadID, event.messageID);
+          }
+        }
+      }
+    }
+
+    // Handling reaction triggers based on certain text patterns
+    const reactions = ["haha", "😹", "lol", "pro", "gpt", "😹", "hehe"];
+    if (reactions.some(reaction => messageBody.includes(reaction))) {
+      setTimeout(() => {
+        api.setMessageReaction("😹", event.messageID, () => {}, true);
+      }, 500);
+    }
+  }
 };

@@ -1,8 +1,8 @@
-#const fs = require('fs');const moment = require('moment-timezone');
+const fs = require('fs');const moment = require('moment-timezone');
 module.exports = {
   config: {
-    name: "info",
-    aliases: ["inf", "in4"],
+    name: "owner",
+    aliases: ["boss", "captain"],
     version: "2.0",
     author: "Anthony | Edition by Xos Eren",
     countDown: 5,
@@ -27,18 +27,18 @@ module.exports = {
   },
 
   onChat: async function ({ event, message }) {
-    if (event.body && event.body.toLowerCase() === "info") {
+    if (event.body && event.body.toLowerCase() === "owner") {
       this.sendInfo(message);
     }
   },
 
   sendInfo: async function (message) {
-    const botName = " 🕸️ 𝐒𝐩𝐢𝐝𝐞𝐘🕷️ ";
-    const botPrefix = "𝐄𝐫𝐞𝐧 ";
-    const authorName = "𝐑𝐚𝐚𝐝";
-    const authorFB = "𝐑𝐚 𝐀𝐚𝐝";
-    const authorInsta = "raadx102";
-    const status = " 𝗦𝗶𝗻𝗴𝗹𝗲";
+    const frome = " Dhaka, Mirpur ";
+    const authorAge = "16";
+    const authorName = "𝐄𝐫𝐞𝐧 𝐘𝐞𝐚𝐠𝐞𝐫";
+    const authorNickname = "Eruuuu! ";
+    const authorChoise = "Russian";
+    const status = "𝗣𝘂𝗿𝗲 𝗦𝗶𝗻𝗴𝗹𝗲";
 
     const urls = JSON.parse(fs.readFileSync('scripts/cmds/assets/Ayan.json'));
     const link = urls[Math.floor(Math.random() * urls.length)];
@@ -55,23 +55,17 @@ module.exports = {
     const uptimeString = `${hours}h ${minutes}m ${seconds}sec`;
 
     message.reply({
-      body: `                              🎀           𝐀𝐝𝐦𝐢𝐧 𝐈𝐧𝐟𝐨         ☮
-────────────────
-𝐍𝐚𝐦𝐞 :  ${authorName}  
-
-𝐅𝐛:  ${authorFB}
-
-𝐏𝐫𝐞𝐟𝐢𝐱:  ${botPrefix}  
-
-𝐑𝐞𝐥𝐚𝐭𝐢𝐨𝐧𝐬𝐡𝐢𝐩:  ${status}     
-
-𝐈𝐠:   ${authorInsta}
-
-𝐓𝐢𝐦𝐞:   ${time}   
-
-𝐔𝐩𝐭𝐢𝐦𝐞: ${uptimeString}
-
-𝐁𝐨𝐭 :  ${botName}  `,
+      body: `╔════════════════╗
+║  𝐁𝐨𝐭 :  🕸️ SpideY 🕷️         ║
+╠════════════════╣
+║ 𝐍𝐚𝐦𝐞: ${authorName}
+║ 𝐅𝐫𝐨𝐦:  ${frome}
+║ 𝐍𝐢𝐜𝐤: ${authorNickname}
+║ 𝐂𝐡𝐨𝐢𝐬𝐞:  ${authorChoise}
+║ 𝐑𝐞𝐥𝐚𝐭𝐢𝐨𝐧𝐬𝐡𝐢𝐩: ${status}  
+║ 𝐓𝐢𝐦𝐞:  ${time}
+║  𝐔𝐩𝐭𝐢𝐦𝐞: ${uptimeString}
+╚════════════════╝`,
       attachment: await global.utils.getStreamFromURL(link)
     });
   }
