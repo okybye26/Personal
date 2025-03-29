@@ -11,8 +11,9 @@ module.exports = {
     shortDescription: { en: "📖 View command usage" },
     longDescription: { en: "📜 View command usage and list all commands directly" },
     category: "ℹ️ Info",
-    guide: { en: "🔹 {pn} / help cmdName" },
+    guide: { en: "🔹 {pn}help [command name]" },
     priority: 1,
+    usePrefix: false
   }),
 
   onStart: async function ({ message, args, event, role }) {
@@ -72,6 +73,14 @@ module.exports = {
       }
     }
   },
+
+  onChat: async function ({ event, message, role }) {
+    const body = event.body?.trim().toLowerCase();
+    if (!body || !body.startsWith("help")) return;
+
+    const args = body.split(/\s+/).slice(1);
+    this.onStart({ event, message, args, role });
+  }
 };
 
 function roleTextToString(role) {
