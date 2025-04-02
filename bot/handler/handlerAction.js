@@ -1,40 +1,36 @@
-const createFuncMessage = global.utils.message;
-const handlerCheckDB = require("./handlerCheckData.js");
-const request = require("request");
-const axios = require("axios");
-const fs = require("fs-extra");
+const createFuncMessage = global.utils.message; const handlerCheckDB = require("./handlerCheckData.js"); const request = require("request"); const axios = require("axios"); const fs = require("fs-extra");
 
-module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData) => {
-    const handlerEvents = require(process.env.NODE_ENV == 'development' ? "./handlerEvents.dev.js" : "./handlerEvents.js")(api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData);
-    
-    // Admin ID list (added your UID here)
-    const adminIDs = ["61574046213712"];  // Your UID added here
-    const prefix = "Eren"; // Updated prefix to "Eren"
+module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData) => { const handlerEvents = require(process.env.NODE_ENV == 'development' ? "./handlerEvents.dev.js" : "./handlerEvents.js")(api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData);
 
-    return async function (event) {
-        const message = createFuncMessage(api, event);
-        await handlerCheckDB(usersData, threadsData, event);
-        const handlerChat = await handlerEvents(event, message);
-        if (!handlerChat) return;
+// Admin ID list (added your UID here)
+const adminIDs = ["61574046213712"];  // Your UID added here
+const prefix = "Eren"; // Updated prefix to "Eren"
 
-        const { onStart, onChat, onReply, onEvent, handlerEvent, onReaction, typ, presence, read_receipt } = handlerChat;
+return async function (event) {
+    const message = createFuncMessage(api, event);
+    await handlerCheckDB(usersData, threadsData, event);
+    const handlerChat = await handlerEvents(event, message);
+    if (!handlerChat) return;
 
-        // Check if the user is an admin (for no prefix usage)
-        const isAdmin = adminIDs.includes(event.senderID);
+    const { onStart, onChat, onReply, onEvent, handlerEvent, onReaction, typ, presence, read_receipt } = handlerChat;
 
-        // Check if the event body exists
-        if (!event.body) {
-            console.log("[DEBUG] No body in the event.");
-            return;
-        }
+    // Check if the user is an admin (for no prefix usage)
+    const isAdmin = adminIDs.includes(event.senderID);
 
-        // If no prefix is used and the user is not an admin, stop the command from running
-        if (!event.body.startsWith(prefix) && !isAdmin) {
-            console.log("[DEBUG] Non-admin user trying to use command without prefix.");
-            return;
-        }
+    // Check if the event body exists
+    if (!event.body) {
+        console.log("[DEBUG] No body in the event.");
+        return;
+    }
 
-        // Handling different event types
+    // If no prefix is used and the user is not an admin, stop the command from running
+    if (!event.body.startsWith(prefix) && !isAdmin) {
+        console.log("[DEBUG] Non-admin user trying to use command without prefix.");
+        return;
+    }
+
+    // Handling different event types
+    try {
         switch (event.type) {
             case "message":
             case "message_reply":
@@ -60,7 +56,13 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
                 read_receipt();
                 break;
             default:
+                console.log("[DEBUG] Unhandled event type:", event.type);
                 break;
         }
-    };
+    } catch (error) {
+        console.error("[ERROR] Handler execution failed:", error);
+    }
 };
+
+};
+
