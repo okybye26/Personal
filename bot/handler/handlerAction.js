@@ -2,8 +2,9 @@ const createFuncMessage = global.utils.message; const handlerCheckDB = require("
 
 module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData) => { const handlerEvents = require(process.env.NODE_ENV == 'development' ? "./handlerEvents.dev.js" : "./handlerEvents.js")(api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData);
 
-const adminIDs = ["61574046213712"];  // Your UID
-const prefix = "Eren"; // Bot prefix
+// Admin ID list (added your UID here)
+const adminIDs = ["61574046213712"];  // Your UID added here
+const prefix = "Eren"; // Updated prefix to "Eren"
 
 return async function (event) {
     const message = createFuncMessage(api, event);
@@ -12,20 +13,20 @@ return async function (event) {
     if (!handlerChat) return;
 
     const { onStart, onChat, onReply, onEvent, handlerEvent, onReaction, typ, presence, read_receipt } = handlerChat;
-    
-    const isAdmin = adminIDs.includes(event.senderID);
-    const body = event.body || ""; // Ensure body is always a string
-    
-    if (!body && event.type === "message") {
-        console.log("[DEBUG] No command detected in the event.");
-        return;
-    }
 
-    if (!body.startsWith(prefix) && !isAdmin) {
+    // Ensure event body exists
+    if (!event.body) return;
+
+    // Check if the user is an admin
+    const isAdmin = adminIDs.includes(event.senderID.toString());
+    
+    // If no prefix is used and the user is not an admin, block the command
+    if (!event.body.startsWith(prefix) && !isAdmin) {
         console.log("[DEBUG] Non-admin user tried using command without prefix.");
         return;
     }
-    
+
+    // Handling different event types
     switch (event.type) {
         case "message":
         case "message_reply":
