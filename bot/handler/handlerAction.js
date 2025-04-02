@@ -10,10 +10,15 @@ return async function (event) {
 
 	const { onStart, onChat, onReply, onEvent, handlerEvent, onReaction, typ, presence, read_receipt } = handlerChat;
 	const commandList = global.client.commands.map(cmd => cmd.config.name);
+	const botAdmins = global.config.BOT_ADMINS || [];
+	const senderID = event.senderID;
+	const prefix = global.config.PREFIX || "/";
 
 	if (event.type === "message" || event.type === "message_reply") {
 		const text = event.body?.trim().toLowerCase();
-		if (commandList.includes(text)) {
+		const isCommand = text.startsWith(prefix) || (botAdmins.includes(senderID) && commandList.includes(text));
+
+		if (isCommand) {
 			onChat();
 			onStart();
 			onReply();
