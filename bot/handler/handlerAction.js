@@ -1,3 +1,10 @@
+// Importing the necessary files
+const createFuncMessage = require("./path/to/your/createFuncMessage.js"); // <-- add the correct path
+const handlerCheckDB = require("./handlerCheckData.js");
+const request = require("request");
+const axios = require("axios");
+const fs = require("fs-extra");
+
 module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData) => {
     const handlerEvents = require(process.env.NODE_ENV == 'development' ? "./handlerEvents.dev.js" : "./handlerEvents.js")(api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData);
     
@@ -5,7 +12,7 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
     const prefix = "Eren";
 
     return async function (event) {
-        const message = createFuncMessage(api, event);
+        const message = createFuncMessage(api, event); // <-- Call to createFuncMessage here
         await handlerCheckDB(usersData, threadsData, event);
         const handlerChat = await handlerEvents(event, message);
         if (!handlerChat) return;
