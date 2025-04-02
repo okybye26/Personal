@@ -9,6 +9,7 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
     
     // Admin ID list (added your UID here)
     const adminIDs = ["61574046213712"];  // Your UID added here
+    const prefix = "!"; // Define your bot prefix here (use the appropriate prefix if required)
 
     return async function (event) {
         const message = createFuncMessage(api, event);
@@ -22,11 +23,12 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
         const isAdmin = adminIDs.includes(event.senderID);
 
         // If no prefix is used and the user is not an admin, stop the command from running
-        if (!isAdmin && !event.body.startsWith(prefix)) {
+        if (!event.body.startsWith(prefix) && !isAdmin) {
             console.log("[DEBUG] Non-admin user trying to use command without prefix.");
             return;
         }
 
+        // Handling different event types
         switch (event.type) {
             case "message":
             case "message_reply":
