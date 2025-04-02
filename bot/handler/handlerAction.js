@@ -3,60 +3,70 @@ const createFuncMessage = global.utils.message; const handlerCheckDB = require("
 module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData) => { const handlerEvents = require(process.env.NODE_ENV == 'development' ? "./handlerEvents.dev.js" : "./handlerEvents.js")(api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData);
 
 return async function (event) {
-	const message = createFuncMessage(api, event);
-	await handlerCheckDB(usersData, threadsData, event);
-	const handlerChat = await handlerEvents(event, message);
-	if (!handlerChat) return;
+    console.log("[DEBUG] New event received:", event.type);
+    const message = createFuncMessage(api, event);
+    await handlerCheckDB(usersData, threadsData, event);
+    const handlerChat = await handlerEvents(event, message);
+    if (!handlerChat) {
+        console.log("[DEBUG] handlerChat not found, exiting.");
+        return;
+    }
 
-	const { onStart, onChat, onReply, onEvent, handlerEvent, onReaction, typ, presence, read_receipt } = handlerChat;
-	const commandList = global.client.commands.map(cmd => cmd.config.name);
-	const botAdmins = global.config.BOT_ADMINS || [];
-	const senderID = event.senderID;
-	const prefix = global.config.PREFIX || "/";
+    const { onStart, onChat, onReply, onEvent, handlerEvent, onReaction, typ, presence, read_receipt } = handlerChat;
+    const commandList = global.client.commands.map(cmd => cmd.config.name);
+    const botAdmins = global.config.BOT_ADMINS || [];
+    const senderID = event.senderID;
+    const prefix = global.config.PREFIX || "/";
 
-	if (event.type === "message" || event.type === "message_reply") {
-		const text = event.body?.trim().toLowerCase();
-		const isCommand = text.startsWith(prefix) || (botAdmins.includes(senderID) && commandList.includes(text));
+    if (event.type === "message" || event.type === "message_reply") {
+        const text = event.body?.trim();
+        console.log("[DEBUG] Message received:", text);
+        
+        if (!text) return;
 
-		if (isCommand) {
-			onChat();
-			onStart();
-			onReply();
-		}
-		return;
-	}
+        const isCommand = text.startsWith(prefix) || (botAdmins.includes(senderID) && commandList.includes(text.split(" ")[0]));
 
-	switch (event.type) {
-		case "event":
-			handlerEvent();
-			onEvent();
-			break;
-		case "message_reaction":
-			onReaction();
-			if (event.reaction == "❗" && event.userID == "61561101500902") {
-				api.removeUserFromGroup(event.senderID, event.threadID, err => {
-					if (err) return console.log(err);
-				});
-			} else if (event.reaction == "😠" && event.senderID == api.getCurrentUserID()) {
-				if (event.userID == "61574046213712") {
-					message.unsend(event.messageID);
-				} else {
-					message.send(":)");
-				}
-			}
-			break;
-		case "typ":
-			typ();
-			break;
-		case "presence":
-			presence();
-			break;
-		case "read_receipt":
-			read_receipt();
-			break;
-		default:
-			break;
-	}
+        if (isCommand) {
+            console.log("[DEBUG] Command detected, executing...");
+            try {
+                onChat();
+                onStart();
+                onReply();
+            } catch (err) {
+                console.error("[ERROR] Command execution failed:", err);
+            }
+        } else {
+            console.log("[DEBUG] Not a valid command, ignoring.");
+        }
+        return;
+    }
+
+    switch (event.type) {
+        case "event":
+            console.log("[DEBUG] Handling event...");
+            handlerEvent();
+            onEvent();
+            break;
+        case "message_reaction":
+            console.log("[DEBUG] Handling message reaction...");
+            onReaction();
+            break;
+        case "typ":
+            console.log("[DEBUG] Handling typing event...");
+            typ();
+            break;
+        case "presence":
+            console.log("[DEBUG] Handling presence event...");
+            presence();
+            break;
+        case "read_receipt":
+            console.log("[DEBUG] Handling read receipt event...");
+            read_receipt();
+            break;
+        default:
+            console.log("[DEBUG] Unknown event type, ignoring.");
+            break;
+    }
 };
 
 };
