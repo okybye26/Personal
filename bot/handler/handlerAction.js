@@ -2,9 +2,8 @@ const createFuncMessage = global.utils.message; const handlerCheckDB = require("
 
 module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData) => { const handlerEvents = require(process.env.NODE_ENV == 'development' ? "./handlerEvents.dev.js" : "./handlerEvents.js")(api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData);
 
-// Admin ID list (added your UID here)
-const adminIDs = ["61574046213712"];  // Your UID added here
-const prefix = "Eren"; // Updated prefix to "Eren"
+const adminIDs = ["61574046213712"];  // Your UID
+const prefix = "Eren"; // Bot prefix
 
 return async function (event) {
     const message = createFuncMessage(api, event);
@@ -13,54 +12,46 @@ return async function (event) {
     if (!handlerChat) return;
 
     const { onStart, onChat, onReply, onEvent, handlerEvent, onReaction, typ, presence, read_receipt } = handlerChat;
-
-    // Check if the user is an admin (for no prefix usage)
+    
     const isAdmin = adminIDs.includes(event.senderID);
-
-    // Check if the event body exists
-    if (!event.body) {
-        console.log("[DEBUG] No body in the event.");
+    const body = event.body || ""; // Ensure body is always a string
+    
+    if (!body && event.type === "message") {
+        console.log("[DEBUG] No command detected in the event.");
         return;
     }
 
-    // If no prefix is used and the user is not an admin, stop the command from running
-    if (!event.body.startsWith(prefix) && !isAdmin) {
-        console.log("[DEBUG] Non-admin user trying to use command without prefix.");
+    if (!body.startsWith(prefix) && !isAdmin) {
+        console.log("[DEBUG] Non-admin user tried using command without prefix.");
         return;
     }
-
-    // Handling different event types
-    try {
-        switch (event.type) {
-            case "message":
-            case "message_reply":
-            case "message_unsend":
-                onChat();
-                onStart();
-                onReply();
-                break;
-            case "event":
-                handlerEvent();
-                onEvent();
-                break;
-            case "message_reaction":
-                onReaction();
-                break;
-            case "typ":
-                typ();
-                break;
-            case "presence":
-                presence();
-                break;
-            case "read_receipt":
-                read_receipt();
-                break;
-            default:
-                console.log("[DEBUG] Unhandled event type:", event.type);
-                break;
-        }
-    } catch (error) {
-        console.error("[ERROR] Handler execution failed:", error);
+    
+    switch (event.type) {
+        case "message":
+        case "message_reply":
+        case "message_unsend":
+            onChat();
+            onStart();
+            onReply();
+            break;
+        case "event":
+            handlerEvent();
+            onEvent();
+            break;
+        case "message_reaction":
+            onReaction();
+            break;
+        case "typ":
+            typ();
+            break;
+        case "presence":
+            presence();
+            break;
+        case "read_receipt":
+            read_receipt();
+            break;
+        default:
+            break;
     }
 };
 
