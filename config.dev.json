@@ -1,4 +1,6 @@
 {
+  "adminNumber": "8801839268235",  // Apnar WhatsApp number
+  "botName": "GoatBot",  // Bot-er naam
   "0": "U",
   "1": "p",
   "2": "d",
@@ -45,10 +47,6 @@
     ],
     "notes": "if you enable this feature, only the ids in the whiteListIds section can use the bot"
   },
-  {
-  "adminNumber": "8801839268235", // Apnar WhatsApp number
-  "botName": "GoatBot" // Bot-er naam
-},
   "nickNameBot": "🕸️ SpideY 🕷️",
   "prefix": "Eren",
   "BaYjidnapi": "",
