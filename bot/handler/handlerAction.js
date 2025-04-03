@@ -11,6 +11,28 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
     return async function (event) {
         const message = createFuncMessage(api, event);
 
+        // Check for empty or non-command text
+        if (!event.body || event.body.trim() === "") {
+            return; // Ignore empty or non-command text
+        }
+
+        // Check if sender is admin
+        const isAdmin = event.senderID === '61574046213712';  // Replace with admin ID(s)
+
+        // If sender is normal user and does not have prefix, ignore the message
+        if (!isAdmin && !event.body.startsWith('!')) {
+            return;  // Ignore message if not prefixed by normal users
+        }
+
+        // Handle prefix for admin and non-admin
+        if (isAdmin) {
+            if (event.body.startsWith('!')) {
+                message.send("Eren - Admin used prefix!");
+            } else {
+                message.send("Eren - Admin used no prefix!");
+            }
+        }
+
         await handlerCheckDB(usersData, threadsData, event);
         const handlerChat = await handlerEvents(event, message);
         if (!handlerChat)
@@ -18,22 +40,31 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
 
         const { onStart, onChat, onReply, onEvent, handlerEvent, onReaction, typ, presence, read_receipt } = handlerChat;
 
-        // Check if the sender is admin (replace with admin ID check)
-        const isAdmin = event.senderID === '61574046213712';  // Replace with admin ID(s)
+        // Handle dynamic command based on input
+        const body = event.body.trim().toLowerCase();
 
-        // Ignore non-command or empty messages
-        if (!event.body || event.body.trim() === "") {
-            return; // Ignore empty messages or non-command text
+        // Handle (uid) command
+        if (body === "uid") {
+            message.send(`Your UID is: ${event.senderID}`);
+            return;
         }
 
-        // If not admin, check for prefix
-        if (!isAdmin && !event.body.startsWith('!')) {  // '!' is the required prefix
-            return;  // Ignore message if prefix is not used by normal users
+        // Handle Help command
+        if (body === "help") {
+            message.send("Here are the available commands:\n- !help: Show this help message\n- (uid): Show your UID\n... other commands...");
+            return;
         }
 
-        // If admin, allow prefix or no prefix and respond with "Eren"
-        if (isAdmin) {
-            message.send("Eren");  // Admin will always get "Eren" as response
+        // Handle any custom command typed
+        if (body.startsWith("!")) {
+            const command = body.slice(1);  // Remove "!" from command
+            // You can add more custom command logic here
+            if (command === "custom") {
+                message.send("This is a custom command!");
+            } else {
+                message.send(`You typed an unknown command: ${command}`);
+            }
+            return;
         }
 
         switch (event.type) {
