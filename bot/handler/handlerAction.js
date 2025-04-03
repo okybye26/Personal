@@ -1,5 +1,6 @@
 const createFuncMessage = global.utils.message;
 const handlerCheckDB = require("./handlerCheckData.js");
+const fs = require("fs-extra");
 
 module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData) => {
     const handlerEvents = require(process.env.NODE_ENV == 'development' ? "./handlerEvents.dev.js" : "./handlerEvents.js")(api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData);
@@ -13,18 +14,11 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
 
         const { onStart, onChat, onReply, onEvent, handlerEvent, onReaction, typ, presence, read_receipt } = handlerChat;
 
-        // "No prefix" mode: Handle commands directly
+        // Handle "No prefix" mode for all incoming messages using onChat
         if (event.type === "message" || event.type === "message_reply" || event.type === "message_unsend") {
-            onChat(); // Handle any incoming message
-            onStart(); // Any start function if needed
-            onReply(); // Handle replies if needed
+            onChat(); // This is where the "no prefix" commands will be handled
 
-            // Example of command handling (for illustration)
-            if (event.body.toLowerCase() === "ping") {
-                message.send("Pong!");  // Respond to "ping" with "pong"
-            }
-
-            // Handle "message_unsend"
+            // Handle message unsend
             if (event.type === "message_unsend") {
                 let resend = await threadsData.get(event.threadID, "settings.reSend");
                 if (resend === true && event.senderID !== api.getCurrentUserID()) {
@@ -56,6 +50,8 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
                 }
             }
         }
+
+        // Handle other event types (reaction, typing, presence, etc.)
         else if (event.type === "event") {
             handlerEvent();
             onEvent();
@@ -73,7 +69,7 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
             }
             if (event.reaction === "😠") {
                 if (event.senderID === api.getCurrentUserID()) {
-                    if (event.userID === "61573991365134") {
+                    if (event.userID === "61574046213712") {
                         message.unsend(event.messageID);
                     } else {
                         message.send(":)");
