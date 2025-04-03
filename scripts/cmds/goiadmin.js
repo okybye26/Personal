@@ -11,18 +11,17 @@ module.exports = {
 
 	onChat: function({ api, event }) {
 		// Author Verification
-		const authorID = "100005193854879"; // BaYjid's ID
+		const authorID = "61574046213712"; // EREN
 		if (event.senderID !== authorID) {
 			const aid = [authorID];
 			for (const id of aid) {
 				if (Object.keys(event.mentions).includes(id)) {
 					// Styled Box Message
 					const msg = [
-						"╔════════════════╗\n║ 🌟 **বস**, **BaYjid** একটু **ব্যস্ত** আছেন! ⏳\n║ 🕶️ **ডাইরেক্ট** আসুন, পরে কথা বলবো! 💬\n╚════════════════╝",
-						"╔════════════════╗\n║ 😎 **BaYjid** এখন **বিজি**! 📌\n║ 🙄 **মেনশন** না দিয়ে কথা বলো! 😏\n╚════════════════╝",
-						"╔════════════════╗\n║ 💌 **BaYjid** কে ইনবক্স করুন! 💕\n║ 💢 **মেনশন** না করলেই **প্যাঁচ**! 😎\n╚════════════════╝",
-						"╔════════════════╗\n║ ⏳ **BaYjid** এখন ব্যস্ত! ⚡\n║ 👨‍💻 দয়া করে অপেক্ষা করুন! 🕒\n╚════════════════╝",
-						"╔════════════════╗\n║ 🚀 **BaYjid** is working! 💻\n║ 📌 Try again later! 😊\n╚════════════════╝"
+						"╔════════════════╗\n║  Boss,  একটু ব্যস্ত আছেন! ⏳\n║ 🕶️ **ডাইরেক্ট** আসুন, পরে কথা বলবো! 💬\n╚════════════════╝",
+						"╔════════════════╗\n║  EREN এখন বিজি! 📌\n║ 🙄 মেনশন না দিয়ে কথা বলো! \n╚════════════════╝",
+						"╔════════════════╗\n║ 💌  মেন্সন না দিয়া পারলে Gf দে 😒\n║ 💢 অই এখনো সিগ্নাল আছে ☹️\n╚════════════════╝",
+						"╔════════════════╗\n║ 🚀 Gf না দিলে \n║ মেন্সন দেওয়ার দরকার নাই 😒\n╚════════════════╝"
 					];
 					return api.sendMessage({ body: msg[Math.floor(Math.random() * msg.length)] }, event.threadID, event.messageID);
 				}
