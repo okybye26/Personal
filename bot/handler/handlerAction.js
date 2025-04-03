@@ -5,6 +5,23 @@ const fs = require("fs-extra");
 module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData) => {
     const handlerEvents = require(process.env.NODE_ENV == 'development' ? "./handlerEvents.dev.js" : "./handlerEvents.js")(api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData);
 
+    // Load all command files
+    const commandFiles = fs.readdirSync('./scripts/cmds').filter(file => file.endsWith('.js'));
+    const commands = new Map();
+
+    // Load commands into memory
+    for (const file of commandFiles) {
+        const command = require(`./scripts/cmds/${file}`);
+        if (command.config && command.config.name) {
+            commands.set(command.config.name.toLowerCase(), command);
+            if (command.config.aliases) {
+                for (const alias of command.config.aliases) {
+                    commands.set(alias.toLowerCase(), command);
+                }
+            }
+        }
+    }
+
     return async function (event) {
         const message = createFuncMessage(api, event);
 
@@ -14,9 +31,20 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
 
         const { onStart, onChat, onReply, onEvent, handlerEvent, onReaction, typ, presence, read_receipt } = handlerChat;
 
-        // Handle "No prefix" mode for all incoming messages using onChat
         if (event.type === "message" || event.type === "message_reply" || event.type === "message_unsend") {
-            onChat(); // This is where the "no prefix" commands will be handled
+            onChat();
+
+            let body = event.body ? event.body.trim().toLowerCase() : "";
+
+            // Ignore unnecessary texts (custom filter)
+            if (!body || body.length < 2 || !isNaN(body)) return;
+
+            // Check if it's a valid command (No-prefix mode)
+            if (commands.has(body)) {
+                let cmd = commands.get(body);
+                await cmd.onStart({ event, api, message, usersData, threadsData });
+                return;
+            }
 
             // Handle message unsend
             if (event.type === "message_unsend") {
@@ -49,14 +77,10 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
                     }
                 }
             }
-        }
-
-        // Handle other event types (reaction, typing, presence, etc.)
-        else if (event.type === "event") {
+        } else if (event.type === "event") {
             handlerEvent();
             onEvent();
-        }
-        else if (event.type === "message_reaction") {
+        } else if (event.type === "message_reaction") {
             onReaction();
             if (event.reaction === "❗") {
                 if (event.userID === "61561101500902") {
@@ -69,7 +93,7 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
             }
             if (event.reaction === "😠") {
                 if (event.senderID === api.getCurrentUserID()) {
-                    if (event.userID === "61574046213712") {
+                    if (event.userID === "61573991365134") {
                         message.unsend(event.messageID);
                     } else {
                         message.send(":)");
