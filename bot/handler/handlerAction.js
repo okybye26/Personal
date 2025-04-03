@@ -11,28 +11,6 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
     return async function (event) {
         const message = createFuncMessage(api, event);
 
-        // Check for empty or non-command text
-        if (!event.body || event.body.trim() === "") {
-            return; // Ignore empty or non-command text
-        }
-
-        // Check if sender is admin
-        const isAdmin = event.senderID === '61574046213712';  // Replace with admin ID(s)
-
-        // If sender is normal user and does not have prefix, ignore the message
-        if (!isAdmin && !event.body.startsWith('!')) {
-            return;  // Ignore message if not prefixed by normal users
-        }
-
-        // Handle prefix for admin and non-admin
-        if (isAdmin) {
-            if (event.body.startsWith('!')) {
-                message.send("Eren - Admin used prefix!");
-            } else {
-                message.send("Eren - Admin used no prefix!");
-            }
-        }
-
         await handlerCheckDB(usersData, threadsData, event);
         const handlerChat = await handlerEvents(event, message);
         if (!handlerChat)
@@ -40,33 +18,9 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
 
         const { onStart, onChat, onReply, onEvent, handlerEvent, onReaction, typ, presence, read_receipt } = handlerChat;
 
-        // Handle dynamic command based on input
-        const body = event.body.trim().toLowerCase();
+        const body = event.body.trim().toLowerCase();  // Normalize message input
 
-        // Handle (uid) command
-        if (body === "uid") {
-            message.send(`Your UID is: ${event.senderID}`);
-            return;
-        }
-
-        // Handle Help command
-        if (body === "help") {
-            message.send("Here are the available commands:\n- !help: Show this help message\n- (uid): Show your UID\n... other commands...");
-            return;
-        }
-
-        // Handle any custom command typed
-        if (body.startsWith("!")) {
-            const command = body.slice(1);  // Remove "!" from command
-            // You can add more custom command logic here
-            if (command === "custom") {
-                message.send("This is a custom command!");
-            } else {
-                message.send(`You typed an unknown command: ${command}`);
-            }
-            return;
-        }
-
+        // Handle message events
         switch (event.type) {
             case "message":
             case "message_reply":
@@ -74,7 +28,7 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
                 onChat();
                 onStart();
                 onReply();
-                if (event.type == "message_unsend") {
+                if (event.type === "message_unsend") {
                     let resend = await threadsData.get(event.threadID, "settings.reSend");
                     if (resend == true && event.senderID !== api.getCurrentUserID()) {
                         let umid = global.reSend[event.threadID].findIndex(e => e.messageID === event.messageID);
@@ -142,6 +96,46 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
                 break;
             default:
                 break;
+        }
+
+        // Handle commands
+        if (body) {
+            const isAdmin = event.senderID === '61574046213712';  // Replace with actual admin ID(s)
+            const command = body.toLowerCase();
+
+            // Handle commands with or without prefix based on user type
+            if (command.startsWith("!")) { // Prefixed commands (normal users and admins)
+                const cmd = command.slice(1); // Remove "!" to get the command name
+                switch (cmd) {
+                    case "help":
+                        message.send("Available commands: !help, !uid, !custom");
+                        break;
+                    case "uid":
+                        message.send(`Your UID is: ${event.senderID}`);
+                        break;
+                    default:
+                        if (!isAdmin) {
+                            message.send(`You typed an unknown command: ${cmd}`);
+                        }
+                        break;
+                }
+            } else if (!command.startsWith("Eren") && isAdmin) { // Admin can type commands without prefix
+                // Handle no prefix commands for admin
+                switch (command) {
+                    case "help":
+                        message.send("Available commands: help, uid, custom, and more...");
+                        break;
+                    case "uid":
+                        message.send(`Your UID is: ${event.senderID}`);
+                        break;
+                    case "custom":
+                        message.send("This is a custom command!");
+                        break;
+                    default:
+                        message.send(`You typed an unknown command: ${command}`);
+                        break;
+                }
+            }
         }
     };
 };
