@@ -10,7 +10,7 @@ const exec = (cmd, options) => new Promise((resolve, reject) => {
 const { log, loading, getText, colors, removeHomeDir } = global.utils;
 const { GoatBot } = global;
 const { configCommands } = GoatBot;
-const regExpCheckPackage = /require(\s+|)(\s+|)[`'"]([^`'"]+)[`'"](\s+|)/g;
+const regExpCheckPackage = /require(\s+|)\((\s+|)[`'"]([^`'"]+)[`'"](\s+|)\)/g;
 const packageAlready = [];
 // const spinner = '\\|/-';
 const spinner = [
