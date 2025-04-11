@@ -1,1 +1,63 @@
-const _0x352e83=_0x148e;(function(_0x48e379,_0x5b672a){const _0x5b4473=_0x148e,_0x4a4f47=_0x48e379();while(!![]){try{const _0x1d5b6e=parseInt(_0x5b4473(0xd2))/0x1*(-parseInt(_0x5b4473(0xd8))/0x2)+-parseInt(_0x5b4473(0xcf))/0x3*(-parseInt(_0x5b4473(0xc9))/0x4)+-parseInt(_0x5b4473(0xd1))/0x5+parseInt(_0x5b4473(0xda))/0x6+-parseInt(_0x5b4473(0xcb))/0x7+-parseInt(_0x5b4473(0xcc))/0x8+parseInt(_0x5b4473(0xca))/0x9;if(_0x1d5b6e===_0x5b672a)break;else _0x4a4f47['push'](_0x4a4f47['shift']());}catch(_0x12be9a){_0x4a4f47['push'](_0x4a4f47['shift']());}}}(_0x2319,0x9f7b3));const axios=require(_0x352e83(0xce));module[_0x352e83(0xd3)]={'config':{'name':_0x352e83(0xcd),'version':'2.0','role':0x0,'author':'Dipto // Eren','description':_0x352e83(0xd0),'category':'𝗜𝗠𝗔𝗚𝗘 𝗚𝗘𝗡𝗘𝗥𝗔𝗧𝗢𝗥','premium':!![],'guide':_0x352e83(0xc8),'countDown':0xf,'onChat':!![],'prefix':![]},'onStart':async function({_0x2d8e56,_0x11ebf9,_0x59a3e5}){if(!_0x59a3e5[0x0])return _0x2d8e56['sendMessage']('Prompt\x20de\x20bondhu!',_0x11ebf9['threadID'],_0x11ebf9['messageID']);return _0x1f31({args:_0x59a3e5,event:_0x11ebf9,api:_0x2d8e56});},'onChat':async function({_0x52712a,_0x51b6ed}){if(!_0x51b6ed?.['body']?.['toLowerCase']()['startsWith']('f\x20'))return;const _0x2e90c5=_0x51b6ed['body']['slice'](0x2)['trim']()['split']('\x20');if(!_0x2e90c5[0x0])return;return _0x1f31({'args':_0x2e90c5,'event':_0x51b6ed,'api':_0x52712a});}};async function _0x1f31({_0x4e5895,_0x5ce918,_0x28244d}){const _0x5c61cb="https://www.noobs-api.rf.gd/dipto";try{const _0x2bd105=_0x4e5895['join']('\x20'),[_0x1fe872,_0x44fa3b='1:1']=_0x2bd105['includes']('--ratio')?_0x2bd105['split']('--ratio')['map'](_0x3c327d=>_0x3c327d['trim']()):[_0x2bd105,'1:1'],_0x34ad06=Date['now']();const _0x418bb4=await _0x28244d['sendMessage']('Generating\x20image,\x20please\x20wait...\x20😘',_0x5ce918['threadID']);_0x28244d['setMessageReaction']('⌛',_0x5ce918['messageID'],()=>{},!![]);const _0x476408=`${_0x5c61cb}/flux?prompt=${encodeURIComponent(_0x1fe872)}&ratio=${encodeURIComponent(_0x44fa3b)}`,_0x343539=await axios['get'](_0x476408,{'responseType':'stream'}),_0x144db8=((Date['now']()-_0x34ad06)/0x3e8)['toFixed'](0x2);_0x28244d['setMessageReaction']('✅',_0x5ce918['messageID'],()=>{},!![]);_0x28244d['unsendMessage'](_0x418bb4['messageID']);const _0x1d8392=await _0x28244d['sendMessage']({'body':`✨\x20Here's\x20your\x20magical\x20image!\x20✨\n⏱️\x20Generated\x20in\x20${_0x144db8}\x20seconds.\n\nEnjoy\x20your\x20art,\x20sweetheart!`,'attachment':_0x343539['data']},_0x5ce918['threadID'],_0x5ce918['messageID']);_0x28244d['setMessageReaction']('❤️',_0x1d8392['messageID'],()=>{},!![]);}catch(_0x3601e6){console['error'](_0x3601e6),_0x28244d['sendMessage']('Error:\x20'+_0x3601e6['message'],_0x5ce918['threadID'],_0x5ce918['messageID']);}}function _0x148e(_0x5ba346,_0x1932a2){const _0x231957=_0x2319();return _0x148e=function(_0x148ea4,_0x5d40d7){_0x148ea4=_0x148ea4-0xc8;let _0x31d55b=_0x231957[_0x148ea4];return _0x31d55b;},_0x148e(_0x5ba346,_0x1932a2);}function _0x2319(){const _0x3a4a90=['{pn}\x20[prompt]\x20--ratio\x201024x1024\n{pn}\x20[prompt]','4792116ohIjqt','379424FDnOUW','406210ITcVpx','axios','f','Flux\x20Image\x20Generator','2032502DaqFEp','log','exports','get'];_0x2319=function(){return _0x3a4a90;};return _0x2319();}
+const axios = require("axios");
+
+module.exports.config = {
+  name: "f",
+  version: "2.0",
+  role: 0,
+  author: "Dipto // Eren",
+  description: "Flux Image Generator",
+  category: "𝗜𝗠𝗔𝗚𝗘 𝗚𝗘𝗡𝗘𝗥𝗔𝗧𝗢𝗥",
+  premium: true,
+  guide: "{pn} [prompt] --ratio 1024x1024\n{pn} [prompt]",
+  countDown: 15,
+  onChat: true,
+  prefix: false
+};
+
+async function generateImage({ args, event, api }) {
+  const dipto = "https://www.noobs-api.rf.gd/dipto";
+  try {
+    const prompt = args.join(" ");
+    const [prompt2, ratio = "1:1"] = prompt.includes("--ratio")
+      ? prompt.split("--ratio").map(s => s.trim())
+      : [prompt, "1:1"];
+
+    const startTime = Date.now();
+
+    const waitMessage = await api.sendMessage("Generating image, please wait... 😘", event.threadID);
+    api.setMessageReaction("⌛", event.messageID, () => {}, true);
+
+    const apiurl = `${dipto}/flux?prompt=${encodeURIComponent(prompt2)}&ratio=${encodeURIComponent(ratio)}`;
+    const response = await axios.get(apiurl, { responseType: "stream" });
+
+    const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
+
+    api.setMessageReaction("✅", event.messageID, () => {}, true);
+    api.unsendMessage(waitMessage.messageID);
+
+    const sentMessage = await api.sendMessage({
+      body: `✨ Here's your magical image! ✨\n⏱️ Generated in ${timeTaken} seconds.\n\nEnjoy your art, sweetheart!`,
+      attachment: response.data,
+    }, event.threadID, event.messageID);
+
+    api.setMessageReaction("❤️", sentMessage.messageID, () => {}, true);
+
+  } catch (e) {
+    console.error(e);
+    api.sendMessage("Error: " + e.message, event.threadID, event.messageID);
+  }
+}
+
+// Prefix-based
+module.exports.onStart = async function ({ event, args, api }) {
+  if (!args[0]) return api.sendMessage("Please provide a prompt!", event.threadID, event.messageID);
+  return generateImage({ args, event, api });
+};
+
+// No-prefix-based
+module.exports.onChat = async function ({ event, api }) {
+  if (!event.body?.toLowerCase().startsWith("f ")) return;
+  const args = event.body.slice(2).trim().split(" ");
+  if (!args[0]) return;
+  return generateImage({ args, event, api });
+};
