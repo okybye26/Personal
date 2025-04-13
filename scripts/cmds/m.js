@@ -9,7 +9,7 @@ const csbApi = async () => {
 
 module.exports = {
   config: {
-    name: "m",
+    name: "imgur",
     version: "1.0.0",
     role: 0,
     author: "♡ Nazrul ♡",
