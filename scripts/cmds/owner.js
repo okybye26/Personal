@@ -1,69 +1,107 @@
-const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs-extra");
+const request = require("request");
+const os = require("os");
 
 module.exports = {
-config: {
-  name: "owner",
-  aurthor:"Tokodori",// Convert By Goatbot Tokodori 
-   role: 0,
-  shortDescription: " ",
-  longDescription: "",
-  category: "admin",
-  guide: "{pn}"
-},
+  config: {
+    name: "owner",
+    version: "1.0",
+    author: "✨ Eren Yeh ✨",
+    shortDescription: "Show full bot owner info with videos & Urdu bio",
+    longDescription: "Detailed owner information with bot stats, uptime, Urdu bio and cool videos.",
+    category: "ℹ️ Info",
+    guide: {
+      en: ".owner"
+    },
+    usePrefix: true
+  },
 
-  onStart: async function ({ api, event }) {
-  try {
-    const ownerInfo = {
-      name: '𝐇𝐔𝐒𝐒𝐀𝐈𝐍 💝👽',
-      choise: 'Only Russian 🥵🔥',
-      habit: 'Playing Free Fire 🔥',
-      gender: 'Male',
-      age: '16+',
-      height: '_hat 🐸🤠',
-      facebookLink: 'https://www.facebook.com/profile.php?id=100071009500533',
-      nick: '𝐇4𝐒𝐒𝐀1𝐍 💫🔥'
-    };
+  onStart: async function ({ api, event }) {
+    const ownerInfo = {
+      name: "Xos Eren",
+      whatsapp: "+8801839268235",
+      botName: "💦 SpiDeY 🕸️",
+      botType: "GoatBot",
+      commandCooldown: "5s",
+      ownerID: "61574046213712",
+      botVersion: "1.0",
+      bio: "اُسے نئے طریقوں سے بنانے کی صلاحیت ہے، ایک اچھا اور فعال معاون۔"
+    };
 
-    const bold = 'https://i.imgur.com/LbneO8C.mp4'; // Replace with your Google Drive videoid link https://drive.google.com/uc?export=download&id=here put your video id
+    const botUptime = process.uptime();
+    const botHours = Math.floor(botUptime / 3600);
+    const botMinutes = Math.floor((botUptime % 3600) / 60);
+    const botSeconds = Math.floor(botUptime % 60);
+    const formattedBotUptime = `${botHours}h ${botMinutes}m ${botSeconds}s`;
 
-    const tmpFolderPath = path.join(__dirname, 'tmp');
+    const sysUptime = os.uptime();
+    const sysDays = Math.floor(sysUptime / (3600 * 24));
+    const sysHours = Math.floor((sysUptime % (3600 * 24)) / 3600);
+    const sysMinutes = Math.floor((sysUptime % 3600) / 60);
+    const sysSeconds = Math.floor(sysUptime % 60);
+    const formattedSysUptime = `${sysDays}d ${sysHours}h ${sysMinutes}m ${sysSeconds}s`;
 
-    if (!fs.existsSync(tmpFolderPath)) {
-      fs.mkdirSync(tmpFolderPath);
-    }
+    const body = `
+╭──────────╮
+        ʙᴏᴛ ᴏᴡɴᴇʀ ɪɴғᴏ   😾💋
+╰──────────╯      ──────────────────────────╯
 
-    const videoResponse = await axios.get(bold, { responseType: 'arraybuffer' });
-    const videoPath = path.join(tmpFolderPath, 'owner_video.mp4');
+👤 ᴏᴡɴᴇʀ ɴᴀᴍᴇ: ${ownerInfo.name}
+📱 ᴏᴡɴᴇʀ ᴡʜᴀᴛsᴀᴘᴘ: ${ownerInfo.whatsapp}
 
-    fs.writeFileSync(videoPath, Buffer.from(videoResponse.data, 'binary'));
+📦 ʙᴏᴛ ᴛʏᴘᴇ: ${ownerInfo.botType}
 
-    const response = `╭────────────◊
-├‣Oᴡɴᴇʀ Iɴғᴏʀᴍᴀᴛɪᴏɴ 📃
-├───────────◊
-├‣ Nᴀᴍᴇ: ${ownerInfo.name}
-├‣ Cʜᴏɪsᴇ: ${ownerInfo.choise}
-├‣ Hᴀʙɪᴛ: ${ownerInfo.habit}
-├‣ Gᴇɴᴅᴇʀ:  ${ownerInfo.gender}
-├‣ Aɢᴇ:  ${ownerInfo.age}
-├‣ Hᴇɪɢʜᴛ: ${ownerInfo.height}
-├‣ Fᴀᴄᴇʙᴏᴏᴋ:  ${ownerInfo.facebookLink}
-├‣ Nɪᴄᴋ: ${ownerInfo.nick}   
-╰───────────◊`;
+⏳ ᴄᴏᴍᴍᴀɴᴅ ᴄᴏᴏʟᴅᴏᴡɴ: ${ownerInfo.commandCooldown}
+
+🆔 ᴏᴡɴᴇʀ ɪᴅ: ${ownerInfo.ownerID}
+
+🤖 ʙᴏᴛ ɴᴀᴍᴇ: ${ownerInfo.botName}
+
+💬 ᴇᴘʜᴏ: Responsive bot for automation and management.
 
 
-    await api.sendMessage({
-      body: response,
-      attachment: fs.createReadStream(videoPath)
-    }, event.threadID, event.messageID);
+🌟 ʙɪᴏ: ${ownerInfo.bio}
 
-    if (event.body.toLowerCase().includes('ownerinfo')) {
-      api.setMessageReaction('🚀', event.messageID, (err) => {}, true);
-    }
-  } catch (error) {
-    console.error('Error in ownerinfo command:', error);
-    return api.sendMessage('An error occurred while processing the command.', event.threadID);
-  }
-},
+────────────────────────────────────
+
+
+`;
+
+    const imgurVideos = [
+      "https://i.imgur.com/0bCwiQa.mp4"
+    ];
+
+    const downloadVideo = (url, path) => {
+      return new Promise((resolve, reject) => {
+        request(url)
+          .pipe(fs.createWriteStream(path))
+          .on("close", resolve)
+          .on("error", reject);
+      });
+    };
+
+    const videoPaths = [];
+    for (let i = 0; i < imgurVideos.length; i++) {
+      const path = `${__dirname}/cache/video${i}.mp4`;
+      await downloadVideo(imgurVideos[i], path);
+      videoPaths.push(path);
+    }
+
+    api.sendMessage(
+      {
+        body,
+        attachment: videoPaths.map(p => fs.createReadStream(p))
+      },
+      event.threadID,
+      () => videoPaths.forEach(p => fs.unlinkSync(p)),
+      event.messageID
+    );
+  },
+
+  onChat: async function ({ event, message }) {
+    const body = event.body?.trim().toLowerCase();
+    if (body === "owner") {
+      return this.onStart({ event, message });
+    }
+  }
 };

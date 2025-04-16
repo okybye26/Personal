@@ -1,114 +1,118 @@
- const os = require("os");
-const { createCanvas, loadImage } = require("canvas");
-const util = require("util");
-const exec = util.promisify(require("child_process").exec);
-const moment = require("moment-timezone");
-const fs = require("fs");
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
-  config: {
-    name: "uptime",
-    aliases: ["upt", "up"],
-    version: "1.5",
-    author: "XOS Ayan",
-    role: 0,
-    noPrefix: true,
-    shortDescription: {
-      en: "Check bot uptime with image."
-    },
-    longDescription: {
-      en: "Generates an image with uptime info and sends system stats as text."
-    },
-    category: "system",
-    guide: {
-      en: "Use: {pn} or just type 'uptime', 'upt', or 'up'"
-    }
-  },
+  config: {
+    name: "uptime",
+    aliases: ["up", " upt"],
+    version: "1.5",
+    author: "EREN // Re-coded",
+    role: 0,
+    shortDescription: { 
+      en: "Check bot's uptime & ping with style!" 
+    },
+    longDescription: { 
+      en: "Shows how long the bot has been running & its response time in a cute format!" 
+    },
+    category: "owner",
+    guide: { 
+      en: "Use {p}monitor to check bot stats in a stylish way!" 
+    },
+    onChat: true
+  },
 
-  // Dummy function to avoid Goat Bot error
-  onStart: async function () {},
+  onStart: async function ({ api, event }) {
+    return this.monitor(api, event);
+  },
 
-  onChat: async function ({ message, event, usersData, threadsData }) {
-    const prefix = global.GoatBot.config.prefix;
-    const body = (event.body || "").toLowerCase().trim();
-    const allTriggers = [`uptime`, `upt`, `up`, `${prefix}uptime`, `${prefix}upt`, `${prefix}up`];
-    if (!allTriggers.includes(body)) return;
+  onChat: async function ({ event, api }) {
+    const content = event.body?.toLowerCase().trim();
+    if (["upt", "up"].includes(content)) {
+      return this.monitor(api, event);
+    }
+  },
 
-    try {
-      const uptime = process.uptime();
-      const days = Math.floor(uptime / 86400);
-      const h = Math.floor((uptime % 86400) / 3600);
-      const m = Math.floor((uptime % 3600) / 60);
-      const s = Math.floor(uptime % 60);
-      const upTimeStr = `${days}d ${h}h ${m}m ${s}s`;
+  monitor: async function (api, event) {
+    try {
+      const start = Date.now();
+      const temp = await api.sendMessage("⌛ 𝖥𝖾𝗍𝖼𝗁𝗂𝗇𝗀 𝖻𝗈𝗍 𝗌𝗍𝖺𝗍𝗎𝗌...", event.threadID);
+      setTimeout(() => api.unsendMessage(temp.messageID), 1500);
 
-      const cpuModel = os.cpus()[0].model;
-      const totalMemory = os.totalmem();
-      const freeMemory = os.freemem();
-      const usedMemory = totalMemory - freeMemory;
-      const diskUsage = await getDiskUsage();
-      const totalUsers = (await usersData.getAll()).length;
-      const totalThreads = (await threadsData.getAll()).length;
-      const currentTime = moment.tz("Asia/Dhaka").format("DD/MM/YYYY || HH:mm:ss");
+      const end = Date.now();
+      const ping = end - start;
 
-      const background = await loadImage("https://i.imgur.com/hes9xq4.jpeg");
-      const canvas = createCanvas(1000, 500);
-      const ctx = canvas.getContext("2d");
+      const uptime = process.uptime();
+      const days = Math.floor(uptime / 86400);
+      const hours = Math.floor((uptime % 86400) / 3600);
+      const minutes = Math.floor((uptime % 3600) / 60);
+      const seconds = Math.floor(uptime % 60);
 
-      ctx.drawImage(background, 0, 0, 1000, 500);
-      ctx.fillStyle = "#FFFFFF";
-      ctx.font = "bold 50px Arial";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
-      ctx.shadowBlur = 5;
+      let uptimeFormatted = `⏳ ${days}d ${hours}h ${minutes}m ${seconds}s`;
+      if (days === 0) uptimeFormatted = `⏳ ${hours}h ${minutes}m ${seconds}s`;
+      if (hours === 0) uptimeFormatted = `⏳ ${minutes}m ${seconds}s`;
+      if (minutes === 0) uptimeFormatted = `⏳ ${seconds}s`;
 
-      ctx.fillText("BOT UPTIME", 72, 100);
-      ctx.fillText(`${upTimeStr}`, 72, 200);
-      ctx.shadowColor = "transparent";
+      const imageURL = "https://i.imgur.com/IP1KV5u.mp4";
+      const fallbackImage = path.join(__dirname, "fallback.jpg"); // Optional local backup
 
-      const imagePath = `${__dirname}/uptime_image.png`;
-      const buffer = canvas.toBuffer();
-      fs.writeFileSync(imagePath, buffer);
+      const getImageStream = async () => {
+        try {
+          const res = await axios.get(imageURL, {
+            responseType: "stream",
+            headers: { "User-Agent": "Mozilla/5.0" }
+          });
+          return res.data;
+        } catch (err) {
+          if (err.response?.status === 429) {
+            console.warn("429 detected, using fallback image.");
+          } else {
+            console.warn("Image fetch error:", err.message);
+          }
+          if (fs.existsSync(fallbackImage)) {
+            return fs.createReadStream(fallbackImage);
+          } else {
+            return null; // no image
+          }
+        }
+      };
 
-      await message.reply({
-        body: `──────────────────      
-𝗔𝗱𝗺𝗶𝗻 𝗜𝗻𝗳𝗼 :
+      const finalMessage = `
+╭───────────────────────╮
+BOT STATUS
+──────╯
+╰─────────────────
 
-𝗢𝗪𝗡𝗘𝗥: 𝗥𝗮𝗮𝗱
-𝗣𝗥𝗘𝗙𝗜𝗫: ( ${prefix} )
+┏━━━━━━━━━━━━━━━┓
+┃ 💤 𝖴𝗉𝗍𝗂𝗆𝗾: ${uptimeFormatted}
+┃ ⚡ 𝖯𝗂𝗇𝗀: ${ping}ms
+┃ 👑 𝖮𝗐𝗇𝖾𝗋: EREN
+┗━━━━━━━━━━━━━━━┛
 
-𝗕𝗼𝘁 𝗨𝗽𝘁𝗶𝗺𝗲 :
+𝗕𝗼𝘁 𝗶𝘀 𝗮𝗹𝗶𝘃𝗲 𝗮𝗻𝗱 𝗿𝗲𝗮𝗱𝘆 𝘁𝗼 𝗿𝘂𝗹𝗲!
+`;
 
-𝗗𝗮𝘆𝘀: ${days}
-𝗛𝗼𝘂𝗿𝘀: ${h} 
-𝗠𝗶𝗻𝘂𝘁𝗲𝘀: ${m} 
-𝗦𝗲𝗰𝗼𝗻𝗱𝘀: ${s}
+      const attachment = await getImageStream();
 
-𝗖𝘂𝗿𝗿𝗲𝗻𝘁 𝗧𝗶𝗺𝗲: ${currentTime}
-𝗧𝗼𝘁𝗮𝗹 𝗨𝘀𝗲𝗿𝘀: ${totalUsers}
-𝗧𝗼𝘁𝗮𝗹 𝗧𝗵𝗿𝗲𝗮𝗱𝘀: ${totalThreads}
+      const message = await api.sendMessage({
+        body: finalMessage,
+        attachment: attachment || undefined
+      }, event.threadID, event.messageID);
 
-            - SaYonara     
-──────────────────`,
-        attachment: fs.createReadStream(imagePath)
-      });
+      // React to the user's original message
+      if (message?.messageID) {
+        api.setMessageReaction("⏳", event.messageID, event.threadID, true);
+        api.setMessageReaction("✅", event.messageID, event.threadID, true);
+      }
 
-      fs.unlinkSync(imagePath);
-    } catch (err) {
-      console.error(err);
-      await message.reply("❌ An error occurred while generating the uptime image.");
-    }
-  }
+    } catch (error) {
+      console.error("Monitor error:", error);
+
+      // React with ⏳ and ❎ to user's message in case of error
+      api.setMessageReaction("⏳", event.messageID, event.threadID, true);
+      api.setMessageReaction("❎", event.messageID, event.threadID, true);
+
+      return api.sendMessage(`❌ 𝗘𝗿𝗿𝗼𝗿: ${error.response?.status === 429 ? '𝖳𝗈𝗈 𝗆𝖺𝗇𝗒 𝗋𝖾𝗊𝗎𝖾𝗌𝗍𝗌! 𝖳𝗋𝗒 𝖺𝗀𝖺𝗂𝗇 𝗌𝗁𝗈𝗋𝗧𝗅𝗒.' : error.message}`, event.threadID, event.messageID);
+    }
+  }
 };
-
-async function getDiskUsage() {
-  const { stdout } = await exec("df -k /");
-  const [_, total, used] = stdout.split("\n")[1].split(/\s+/).filter(Boolean);
-  return {
-    total: parseInt(total) * 1024,
-    used: parseInt(used) * 1024
-  };
-}
