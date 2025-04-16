@@ -53,7 +53,7 @@ module.exports = {
       if (hours === 0) uptimeFormatted = `⏳ ${minutes}m ${seconds}s`;
       if (minutes === 0) uptimeFormatted = `⏳ ${seconds}s`;
 
-      const imageURL = "https://i.imgur.com/IP1KV5u.mp4";
+      const imageURL = "https://i.imgur.com/TfizXoz.jpeg";
       const fallbackImage = path.join(__dirname, "fallback.jpg"); // Optional local backup
 
       const getImageStream = async () => {
