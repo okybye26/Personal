@@ -1,66 +1,100 @@
-const fs = require("fs");
+const moment = require("moment");
 
 module.exports = {
-  config: {
-    name: "help",
-    version: "2.0",
-    author: " Eren",
-    role: 0,
-    shortDescription: "See available commands",
-    longDescription: "Show all available commands or command details",
-    guide: "{pn} [page | command name]"
-  },
+  config: {
+    name: "help",
+    aliases: ["h", "menu", "hp"],
+    version: "2.4",
+    author: " Eren",
+    countDown: 5,
+    role: 0,
+    shortDescription: "Show all commands",
+    longDescription: "View full list of bot commands in a paginated and detailed format",
+    category: "info",
+    guide: "{pn} [command name | page number]"
+  },
 
-  onStart: async function ({ args, message }) {
-    const commands = Array.from(global.GoatBot.commands.values());
-    const prefix = ".";
-    const perPage = 15;
-    const totalPages = Math.ceil(commands.length / perPage);
-    const roleMap = ["User", "Group Admin", "Bot Admin", "Owner Only"];
+  onStart: async function ({ api, event, args }) {
+    const prefix = global.GoatBot.config.prefix;
+    const commands = global.GoatBot.commands;
+    const allCommands = Array.from(commands.values());
+    const perPage = 15;
+    const totalPages = Math.ceil(allCommands.length / perPage);
+    let page = 1;
+    let cmdName = null;
 
-    if (args[0] && isNaN(args[0])) {
-      const name = args[0].toLowerCase();
-      const cmd =
-        global.GoatBot.commands.get(name) ||
-        commands.find(c => c.config.aliases?.includes(name));
-      if (!cmd) return message.reply(`❌ Command '${name}' not found.`);
+    // Calculate bot uptime
+    const uptime = process.uptime(); // in seconds
+    const days = Math.floor(uptime / (60 * 60 * 24));
+    const hours = Math.floor((uptime / (60 * 60)) % 24);
+    const minutes = Math.floor((uptime / 60) % 60);
+    const seconds = Math.floor(uptime % 60);
 
-      const conf = cmd.config;
-      const aliases = conf.aliases?.join(", ") || "None";
-      const guide = typeof conf.guide === "string" ? conf.guide.replace(/{pn}/g, prefix + conf.name) : "No guide available.";
+    const uptimeString = `${days}d ${hours}h ${minutes}m ${seconds}s`;
 
-      return message.reply(
-`══════════════════
-                  DETAILS =
+    if (args.length > 0) {
+      const input = args[0].toLowerCase();
+      if (isNaN(input)) {
+        cmdName = input;
+      } else {
+        page = parseInt(input);
+        if (page < 1 || page > totalPages) page = 1;
+      }
+    }
 
-  • Name: ${conf.name}
-  • Version: ${conf.version || "1.0"}
+    if (cmdName) {
+      const cmd = allCommands.find(item =>
+        item.config.name.toLowerCase() === cmdName ||
+        (item.config.aliases && item.config.aliases.map(a => a.toLowerCase()).includes(cmdName))
+      );
 
-  • Role: ${roleMap[conf.role] || "Unknown"}
-  • Aliases: ${aliases}
+      if (!cmd) {
+        return api.sendMessage(`✖️ 𝐜𝐨𝐦𝐦𝐚𝐧𝐝 𝐍𝐨𝐭 𝐟𝐨𝐮𝐧𝐝 𝐢𝐧 𝐭𝐡𝐢𝐬 𝐧𝐚𝐦𝐞 '${cmdName}'`, event.threadID, event.messageID);
+      }
 
-  • Author: ${conf.author || "Unknown"}
-  • Usage: ${guide}
-══════════════════`
-      );
-    }
+      const { name, aliases, author, shortDescription, longDescription, category, guide } = cmd.config;
+      const usage = typeof guide === "string" ? guide.replace(/{pn}/g, prefix + name) : "No usage guide provided.";
 
-    const page = parseInt(args[0]) || 1;
-    if (page < 1 || page > totalPages) return message.reply(`❌ Invalid page. Enter 1 - ${totalPages}`);
+      return api.sendMessage(
+        `╭─〔 ✨ 𝐂𝐨𝐦𝐦𝐚𝐧𝐝 𝐈𝐧𝐟𝐨 ✨ 〕─╮\n` +
+        `│\n` +
+        `│ ⟡ Name: ${name}\n` +
+        `│ ⟡ Aliases: ${aliases?.join(", ") || "None"}\n` +
+        `│ ⟡ Category: ${category}\n` +
+        `│ ⟡ Author: ${author}\n` +
+        `│ ⟡ Description: ${shortDescription}\n` +
+        `│ ⟡ Detail: ${longDescription}\n` +
+        `│\n` +
+        `│ ⟡ Usage:\n│ ${usage}\n` +
+        `╰──────────────────────╯`,
+        event.threadID,
+        event.messageID
+      );
+    }
 
-    const list = commands
-      .slice((page - 1) * perPage, page * perPage)
-      .map(cmd => `  ◦  ${cmd.config.name}`)
-      .join("\n");
+    const sliced = allCommands.slice((page - 1) * perPage, page * perPage);
+    const msg = sliced.map((cmd, index) => {
+      return `╭─⟪ ${cmd.config.name} ⟫\n│ ✦ ${cmd.config.shortDescription}\n╰───────────────`;
+    }).join("\n");
 
-    return message.reply(
-`════════════════════
-               𝐂𝐨𝐦𝐦𝐚𝐧𝐝 𝐋𝐢𝐬𝐭 :
+    api.sendMessage(
+      `╭── 🎀 𝐁𝐨𝐭 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬 🎀 ──╮\n` +
+      `│ Total: ${allCommands.length} cmds\n` +
+      `│ Uptime: ${uptimeString}\n` +
+      `│ Page: ${page}/${totalPages}\n` +
+      `╰────────────────────╯\n\n` +
+      `${msg}\n\n` +
+      `➤ Type 'help <command name>' to see command info.`,
+      event.threadID,
+      event.messageID
+    );
+  },
 
-${list}
-
-════════════════════ Page ${page}/${totalPages} • Total: ${commands.length} commands
-   Type /help [page | command name] ════════════════════`
-    );
-  }
+  onChat: async function ({ api, event, args }) {
+    const input = event.body.trim().toLowerCase();  // Get the chat input
+    if (input.startsWith("help")) {  // Check if the user typed 'help' (no prefix)
+      const newArgs = input.split(" ").slice(1);  // Remove 'help' from the input
+      this.onStart({ api, event, args: newArgs });
+    }
+  }
 };
