@@ -1,11 +1,14 @@
 const moment = require("moment");
+const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
 
 module.exports = {
   config: {
     name: "help",
     aliases: ["h", "menu", "hp"],
     version: "2.4",
-    author: " Eren",
+    author: "Eren",
     countDown: 5,
     role: 0,
     shortDescription: "Show all commands",
@@ -18,19 +21,18 @@ module.exports = {
     const prefix = global.GoatBot.config.prefix;
     const commands = global.GoatBot.commands;
     const allCommands = Array.from(commands.values());
-    const perPage = 15;
-    const totalPages = Math.ceil(allCommands.length / perPage);
-    let page = 1;
-    let cmdName = null;
 
-    // Calculate bot uptime
-    const uptime = process.uptime(); // in seconds
+    // Calculate uptime
+    const uptime = process.uptime();
     const days = Math.floor(uptime / (60 * 60 * 24));
     const hours = Math.floor((uptime / (60 * 60)) % 24);
     const minutes = Math.floor((uptime / 60) % 60);
     const seconds = Math.floor(uptime % 60);
-
     const uptimeString = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+    const perPage = 5;
+    let page = 1;
+    let cmdName = null;
 
     if (args.length > 0) {
       const input = args[0].toLowerCase();
@@ -38,7 +40,6 @@ module.exports = {
         cmdName = input;
       } else {
         page = parseInt(input);
-        if (page < 1 || page > totalPages) page = 1;
       }
     }
 
@@ -56,44 +57,82 @@ module.exports = {
       const usage = typeof guide === "string" ? guide.replace(/{pn}/g, prefix + name) : "No usage guide provided.";
 
       return api.sendMessage(
-        `╭─〔 ✨ 𝐂𝐨𝐦𝐦𝐚𝐧𝐝 𝐈𝐧𝐟𝐨 ✨ 〕─╮\n` +
-        `│\n` +
-        `│ ⟡ Name: ${name}\n` +
-        `│ ⟡ Aliases: ${aliases?.join(", ") || "None"}\n` +
-        `│ ⟡ Category: ${category}\n` +
-        `│ ⟡ Author: ${author}\n` +
-        `│ ⟡ Description: ${shortDescription}\n` +
-        `│ ⟡ Detail: ${longDescription}\n` +
-        `│\n` +
-        `│ ⟡ Usage:\n│ ${usage}\n` +
-        `╰──────────────────────╯`,
+        `╭─    𝐂𝐨𝐦𝐦𝐚𝐧𝐝 𝐈𝐧𝐟𝐨    ─╮\n` +
+        `\n` +
+        `⟡ Name: ${name}\n` +
+        `⟡ Aliases: ${aliases?.join(", ") || "None"}\n` +
+        `⟡ Category: ${category}\n` +
+        `⟡ Author: ${author}\n` +
+        `⟡ Description: ${longDescription}\n` +
+        `⟡ Detail: ${usage}\n` +
+        `\n` +
+        ` - OWNER : EREN YEAGER 💦\n` +
+        `─────────────────────`,
         event.threadID,
         event.messageID
       );
     }
 
-    const sliced = allCommands.slice((page - 1) * perPage, page * perPage);
-    const msg = sliced.map((cmd, index) => {
-      return `╭─⟪ ${cmd.config.name} ⟫\n│ ✦ ${cmd.config.shortDescription}\n╰───────────────`;
-    }).join("\n");
+    // Group commands by category
+    const grouped = {};
+    for (const cmd of allCommands) {
+      const cat = cmd.config.category || "uncategorized";
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(cmd.config.name);
+    }
 
-    api.sendMessage(
-      `╭── 🎀 𝐁𝐨𝐭 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬 🎀 ──╮\n` +
-      `│ Total: ${allCommands.length} cmds\n` +
-      `│ Uptime: ${uptimeString}\n` +
-      `│ Page: ${page}/${totalPages}\n` +
-      `╰────────────────────╯\n\n` +
-      `${msg}\n\n` +
-      `➤ Type 'help <command name>' to see command info.`,
-      event.threadID,
-      event.messageID
-    );
+    const categoryList = Object.entries(grouped).map(([cat, cmds]) => ({
+      category: cat,
+      cmds: cmds.join(", ")
+    }));
+
+    const totalPages = Math.ceil(categoryList.length / perPage);
+    if (page < 1 || page > totalPages) page = 1;
+
+    const sliced = categoryList.slice((page - 1) * perPage, page * perPage);
+    const msg = sliced.map(item =>
+      `╭─⟪ ${item.category} ⟫\n│ ${item.cmds}\n╰───────────────`
+    ).join("\n");
+
+    // Download and send video before message
+    const videoUrl = "https://files.catbox.moe/7q400i.mp4";
+    const videoPath = path.join(__dirname, "helpvideo.mp4");
+
+    try {
+      const videoRes = await axios.get(videoUrl, { responseType: "arraybuffer" });
+      fs.writeFileSync(videoPath, Buffer.from(videoRes.data, "binary"));
+
+      api.sendMessage({
+        body:
+          `╭── 🎀 𝐁𝐨𝐭 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬 🎀 ──╮\n` +
+          `│ Total: ${allCommands.length} cmds\n` +
+          `│ Uptime: ${uptimeString}\n` +
+          `│ Page: ${page}/${totalPages}\n` +
+          `╰────────────────────╯\n\n` +
+          `${msg}\n\n` +
+          `➤ Type 'help <command name>' to see command info.`,
+        attachment: fs.createReadStream(videoPath)
+      }, event.threadID, () => fs.unlinkSync(videoPath), event.messageID);
+    } catch (err) {
+      console.error("Failed to send video:", err);
+      api.sendMessage(
+        `╭── 🎀 𝐁𝐨𝐭 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬 🎀 ──╮\n` +
+        `│ Total: ${allCommands.length} cmds\n` +
+        `│ Uptime: ${uptimeString}\n` +
+        `│ Page: ${page}/${totalPages}\n` +
+        `╰────────────────────╯\n\n` +
+        `${msg}\n\n` +
+        `➤ Type 'help <command name>' to see command info.`,
+        event.threadID,
+        event.messageID
+      );
+    }
   },
 
   onChat: async function ({ api, event, args }) {
-    const input = event.body.trim().toLowerCase();  // Get the chat input
-    if (input.startsWith("help")) {  // Check if the user typed 'help' (no prefix)
-      const newArgs = input.split(" ").slice(1);  // Remove 'help' from the input
+    const input = event.body.trim().toLowerCase();
+    if (input.startsWith("help")) {
+      const newArgs = input.split(" ").slice(1);
       this.onStart({ api, event, args: newArgs });
     }
   }
