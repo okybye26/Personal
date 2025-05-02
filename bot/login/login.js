@@ -1,5 +1,5 @@
 // set bash title
-process.stdout.write("\x1b]2;Fixed By EREN - Made by NTKhang\x1b\x5c");
+process.stdout.write("\x1b]2;BaYjid BoT V2 - Made by NTKhang × BaYjid\x1b\x5c");
 const defaultRequire = require;
 
 function decode(text) {
@@ -99,7 +99,7 @@ for (const text of title) {
 	const textColor = gradient("#FA8BFF", "#2BD2FF", "#2BFF88")(text);
 	centerText(textColor, text.length);
 }
-let subTitle = `Eren BoT V2@${currentVersion}- A simple Bot chat messenger use personal account`;
+let subTitle = `BaYjid BoT V2@${currentVersion}- A simple Bot chat messenger use personal account`;
 const subTitleArray = [];
 if (subTitle.length > maxWidth) {
 	while (subTitle.length > maxWidth) {
@@ -113,7 +113,7 @@ if (subTitle.length > maxWidth) {
 else {
 	subTitleArray.push(subTitle);
 }
-const author = ("Created by NTKhang × Eren♡");
+const author = ("Created by NTKhang × BaYjid♡");
 const srcUrl = ("Source code: https://github.com/ntkhang03/Goat-Bot-V2");
 const fakeRelease = ("ALL VERSIONS NOT RELEASED HERE ARE FAKE");
 for (const t of subTitleArray) {
