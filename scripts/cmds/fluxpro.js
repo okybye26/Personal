@@ -1,50 +1,57 @@
+const fs = require("fs");
+const path = require("path");
 const axios = require("axios");
-const baseApiUrl = async () => {
-  const base = await axios.get(
-    `https://raw.githubusercontent.com/Blankid018/D1PT0/main/baseApiUrl.json`,
-  );
-  return base.data.api;
-};
 
-module.exports.config = {
-  name: "fluxpro",
-  version: "2.0",
-  role: 2,
-  author: "Dipto",
-  description: "Generate images with Flux.1 Pro",
-  category: "𝗜𝗠𝗔𝗚𝗘 𝗚𝗘𝗡𝗘𝗥𝗔𝗧𝗢𝗥",
-  preimum: true,
-  guide: "{pn} [prompt] --ratio 1024x1024\n{pn} [prompt]",
-  countDown: 15,
-};
+module.exports = {
+  config: {
+    name: "fluxpro",
+    aliases: ["fxpro"],
+    author: "ʏᴏᴜʀ ꜰᴀᴛʜᴇʀ✨",
+    version: "2.0",
+    cooldowns: 15,
+    role: 0,
+    shortDescription: "Generate beautiful artwork from your ideas.",
+    longDescription: "Bring your imaginative prompts to life with visually stunning images using the FluxPro AI system.",
+    category: "AI Tools",
+    guide: "{p}fluxpro <your prompt>",
+  },
 
-module.exports.onStart = async ({ message, event, args, api }) => {
-  try {
-  const prompt = args.join(" ");
-  /*let prompt2, ratio;
-  if (prompt.includes("--ratio")) {
-    const parts = prompt.split("--ratio");
-    prompt2 = parts[0].trim();
-    ratio = parts[1].trim();
-  } else {
-    prompt2 = prompt;
-    ratio = "1024x1024";
-  }*/
-    const startTime = new Date().getTime();
-    const ok = message.reply('wait baby <😘')
-    api.setMessageReaction("⌛", event.messageID, (err) => {}, true);
-    const apiUrl = `${await baseApiUrl()}/flux11?prompt=${prompt}`;
+  onStart: async function ({ message, args, api, event }) {
+    const prompt = args.join(" ");
+    if (!prompt) {
+      return api.sendMessage("⚠ Please provide a prompt for ᴘʀɪɴᴄᴇꜱ  to create an image. Try something vivid or descriptive!", event.threadID);
+    }
 
-    api.setMessageReaction("✅", event.messageID, (err) => {}, true);
-     message.unsend(ok.messageID)
-    const attachment = await global.utils.getStreamFromURL(apiUrl);
-    const endTime = new Date().getTime();
-    await message.reply({
-          body: `Here's your image\nModel Name: "Flux.1 Pro"\nTime Taken: ${(endTime - startTime) / 1000} second/s`, 
-          attachment
+    const startTime = Date.now();
+    api.sendMessage("ᴘʟꜱ ᴡᴀɪᴛ ʙᴀʙʏ 😘😘", event.threadID, event.messageID);
+
+    try {
+      const apiUrl = `https://mahi-apis.onrender.com/api/fluxpro?prompt=${encodeURIComponent(prompt)}`;
+      const response = await axios.get(apiUrl);
+
+      const imageUrl = response.data.imageUrl;
+      if (!imageUrl) {
+        return api.sendMessage("❌ Sorry, the image couldn’t be retrieved at this time. Please try again later.", event.threadID);
+      }
+
+      const imageResponse = await axios.get(imageUrl, { responseType: "arraybuffer" });
+      const cacheFolderPath = path.join(__dirname, "cache");
+      if (!fs.existsSync(cacheFolderPath)) fs.mkdirSync(cacheFolderPath);
+
+      const imagePath = path.join(cacheFolderPath, `generated_image_${Date.now()}.png`);
+      fs.writeFileSync(imagePath, Buffer.from(imageResponse.data, "binary"));
+
+      const generationTime = ((Date.now() - startTime) / 1000).toFixed(2);
+      const stream = fs.createReadStream(imagePath);
+
+      message.reply({
+        body: `✨ Your image is ready! Based on your prompt:\n*${prompt}*\n\n🕒 Generated in ${generationTime} seconds.`,
+        attachment: stream
       });
-  } catch (e) {
-    console.log(e);
-    message.reply("Error: " + e.message);
+
+    } catch (error) {
+      console.error("Image Generation Error:", error);
+      return api.sendMessage("❌ An error occurred while creating your image. Please try a different prompt or try again later.", event.threadID);
+    }
   }
 };
