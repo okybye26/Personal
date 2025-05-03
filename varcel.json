@@ -13,5 +13,5 @@
       "dest": "/dashboard/$1"
     }
   ],
-  "outputDirectory": "dashboard/dist"
+  "outputDirectory": "dashboard/build"
 }
