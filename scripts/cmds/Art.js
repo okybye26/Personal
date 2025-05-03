@@ -1,63 +1,60 @@
-const axios = require('axios');
-
-const baseApiUrl = async () => {
-  const base = await axios.get(
-    `https://raw.githubusercontent.com/Mostakim0978/D1PT0/refs/heads/main/baseApiUrl.json`
-  );
-  return base.data.api;
-};
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
-  config: {
-    name: "art",
-    version: "1.6.9",
-    author: "Nazrul",
-    role: 0,
-    description: "{pn} - Enhance your photos with artful transformations!",
-    category: "art",
-    countDown: 5,
-    guide: { 
-      en: "{pn} reply to an image"
-    }
-  },
-  onStart: async function ({ message, event, args, api }) {
-    try {
-      const cp = ["bal","zombie","anime","ghost", "watercolor", "sketch", "abstract", "cartoon","monster"];
-      const prompts = args[0] || cp[Math.floor(Math.random() * cp.length)];
+    config: {
+        name: "art",
+        aliases: ["aiart", "genart"],
+        version: "1.0",
+        author: "Mostakim",
+        countDown: 15,
+        role: 0,
+        shortDescription: "AI Generated Art",
+        longDescription: "Get AI-generated images based on your prompt",
+        category: "fun",
+        guide: {
+            en: "{pn} prompt - limit (e.g. art a dog - 5)",
+        },
+    },
 
-      const msg = await api.sendMessage("🎨 Processing your image, please wait...", event.threadID);
+    onStart: async function ({ api, event, args }) {
+        const queryAndLength = args.join(" ").split("-");
+        const prompt = queryAndLength[0]?.trim();
+        const length = parseInt(queryAndLength[1]?.trim()) || 5;
 
-      let photoUrl = "";
+        if (!prompt) {
+            return api.sendMessage("❌ | Please provide a prompt like: art a cat - 4", event.threadID, event.messageID);
+        }
 
-      if (event.type === "message_reply" && event.messageReply?.attachments?.length > 0) {
-        photoUrl = event.messageReply.attachments[0].url;
-      } else if (args.length > 0) {
-        photoUrl = args.join(' ');
-      }
+        try {
+            const waitMsg = await api.sendMessage("⏳ | Generating art, please wait...", event.threadID);
+            const res = await axios.get(`https://www.x-noobs-apis.42web.io/art?name=${encodeURIComponent(prompt)}`);
+            const imgLinks = res.data;
 
-      if (!photoUrl) {
-        return api.sendMessage("🔰 Please reply to an image or provide a URL!", event.threadID, event.messageID);
-      }
+            if (!imgLinks || imgLinks.length === 0) {
+                return api.sendMessage("❌ | No images found for that prompt.", event.threadID, event.messageID);
+            }
 
-      const response = await axios.get(`${await baseApiUrl()}/art2?url=${encodeURIComponent(photoUrl)}&prompt=${encodeURIComponent(prompts)}`);
+            const files = [];
+            const selectedImages = imgLinks.slice(0, length);
 
-      if (!response.data || !response.data.imageUrl) {
-        await api.sendMessage("⚠ Failed to return a valid image URL. Please try again.", event.threadID, event.messageID);
-        return;
-      }
+            for (let i = 0; i < selectedImages.length; i++) {
+                const imgBuffer = await axios.get(selectedImages[i], { responseType: "arraybuffer" });
+                const filePath = path.join(__dirname, "cache", `art_${i + 1}.jpg`);
+                await fs.outputFile(filePath, imgBuffer.data);
+                files.push(fs.createReadStream(filePath));
+            }
 
-      const imageUrl = response.data.imageUrl;
-      await api.unsendMessage(msg.messageID);
+            await api.unsendMessage(waitMsg.messageID);
+            return api.sendMessage({
+                body: `✅ | Here's your generated art for: "${prompt}"\n🖼️ | Total Images: ${selectedImages.length}`,
+                attachment: files,
+            }, event.threadID, event.messageID);
 
-      const imageStream = await axios.get(imageUrl, { responseType: 'stream' });
-
-      await api.sendMessage({ 
-        body: `Here's your artful image! 🎨`, 
-        attachment: imageStream.data 
-      }, event.threadID, event.messageID);
-
-    } catch (error) {
-      await api.sendMessage(`Error: ${error.message}`, event.threadID, event.messageID);
-    }
-  }
+        } catch (err) {
+            console.error(err);
+            return api.sendMessage(`❌ | Error: ${err.message}`, event.threadID, event.messageID);
+        }
+    },
 };

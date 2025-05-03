@@ -1,4 +1,4 @@
-module.exports = {
+ module.exports = {
   config: {
     name: "anivid",
     version: "1.0",
