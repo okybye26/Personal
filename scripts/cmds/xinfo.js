@@ -1,69 +1,77 @@
-const axios = require("axios");
-const moment = require("moment-timezone");
-const stream = require("stream");
+const moment = require('moment-timezone');
+const axios = require('axios');
 
 module.exports = {
   config: {
     name: "info",
-    aliases: ["botinfo", "i"],
-    version: "1.0",
-    author: "Eren x Sheishiro Nagi",
+    aliases: ["inf", "in4"],
+    version: "2.0",
+    author: "Anthony | Edition by Xos Eren",
     countDown: 5,
     role: 0,
-    shortDescription: "Show bot info with video",
-    longDescription: "Sends a video containing bot time, uptime, and admin details",
-    category: "system",
+    shortDescription: {
+      en: "Sends information about the bot and admin along with a video."
+    },
+    longDescription: {
+      en: "Sends information about the bot and admin along with a video."
+    },
+    category: "Information",
     guide: {
       en: "{pn}"
     }
   },
 
   onStart: async function ({ message }) {
-    const uptimeSec = process.uptime();
-    const h = Math.floor(uptimeSec / 3600);
-    const m = Math.floor((uptimeSec % 3600) / 60);
-    const s = Math.floor(uptimeSec % 60);
-    const uptime = `${h}h ${m}m ${s}s`;
+    this.sendInfo(message);
+  },
 
-    const currentTime = moment().tz("Asia/Dhaka").format("hh:mm:ss A");
+  onChat: async function ({ event, message }) {
+    if (event.body && event.body.toLowerCase() === "info") {
+      this.sendInfo(message);
+    }
+  },
+
+  sendInfo: async function (message) {
+    const botName = "🕸️ 𝐒𝐩𝐢𝐝𝐞𝐘🕷️";
+    const authorName = "𝐑𝐚𝐚𝐝";
+    const authorFB = "𝐑𝐚 𝐀𝐚𝐝";
+    const authorInsta = "raadx102";
+    const status = "𝗦𝗶𝗻𝗴𝗹𝗲";
+
+    const now = moment().tz('Asia/Dhaka');
+    const time = now.format('h:mm:ss A');
+
+    const uptime = process.uptime();
+    const seconds = Math.floor(uptime % 60);
+    const minutes = Math.floor((uptime / 60) % 60);
+    const hours = Math.floor((uptime / (60 * 60)) % 24);
+    const uptimeString = `${hours}h ${minutes}m ${seconds}s`;
+
+    const videoUrl = "https://files.catbox.moe/d5ktl4.mp4";
 
     const body = `
 ╔══『 𝗕𝗢𝗧 』══╗
 ┏━━━━━━━━━━━━━━━━┓
 ┃ 🧑 Admin Info
-┃ ╰➤ Name: Raad
-┃ ╰➤ Facebook: Ra Aad
-┃ ╰➤ Instagram: raadx102
-┃ ╰➤ Status: Single
+┃ ╰➤ Name: ${authorName}
+┃ ╰➤ Facebook: ${authorFB}
+┃ ╰➤ Instagram: ${authorInsta}
+┃ ╰➤ Status: ${status}
 ┃
 ┃ 🤖 Bot Details
-┃ ╰➤ Name: 🕸️ Spidey 🕷️
-┃ ╰➤ Time: ${currentTime}
-┃ ╰➤ Uptime: ${uptime}
+┃ ╰➤ Name: ${botName}
+┃ ╰➤ Time: ${time}
+┃ ╰➤ Uptime: ${uptimeString}
 ┗━━━━━━━━━━━━━━━━┛
 
 I may not be perfect,
-   but I’ll always reply to you.
-    `;
+   but I’ll always reply to you.`;
 
-    try {
-      const res = await axios({
-        method: "GET",
-        url: "https://files.catbox.moe/d5ktl4.mp4",
-        responseType: "stream"
-      });
+    const response = await axios.get(videoUrl, { responseType: 'stream' });
 
-      const passThrough = new stream.PassThrough();
-      res.data.pipe(passThrough);
-
-      await message.reply({
-        body,
-        attachment: passThrough
-      });
-
-    } catch (err) {
-      console.error(err);
-      message.reply("❌ Failed to load video from URL.");
-    }
+    message.reply({
+      body,
+      attachment: response.data
+    });
   }
 };
