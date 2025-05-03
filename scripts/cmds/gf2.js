@@ -7,7 +7,7 @@ author: "ArYAN",
 countDown: 5,
 role: 0,
 description: {
-en: "Find GF"
+en: "hindi gf ☺️"
 },
 category: "FUN",
 guide: {
@@ -22,7 +22,7 @@ if (input && input.trim().toLowerCase().includes('gf de') || input && input.trim
 try {
 	
 api.setMessageReaction("⏳", event.messageID, (err) => {}, true);
-const response = await axios.get('https://aryan-error-gf-api.onrender.com/aryangf');
+const response = await axios.get('https://aryan-error-hindi-gf-api.onrender.com/aryangf');
 const res = response.data.data;
 api.setMessageReaction("✅", event.messageID, (err) => {}, true);
 await message.reply({

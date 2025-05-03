@@ -1,11 +1,10 @@
-const fs = require("fs-extra");
 const request = require("request");
 
 module.exports = {
 config: {
 		name: "group",
     version: "1.0",
-		author: "ovhi bbz",
+		author: "Samir Thakuri",
 		countDown: 5,
 		role: 1,
 		shortDescription: "See Box info and changes",

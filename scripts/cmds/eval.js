@@ -3,15 +3,11 @@ const { removeHomeDir, log } = global.utils;
 module.exports = {
 	config: {
 		name: "eval",
-		version: "1.5",
+		version: "1.6",
 		author: "NTKhang",
 		countDown: 5,
 		role: 2,
-		shortDescription: {
-			vi: "Test code nhanh",
-			en: "Test code quickly"
-		},
-		longDescription: {
+		description: {
 			vi: "Test code nhanh",
 			en: "Test code quickly"
 		},
@@ -32,7 +28,7 @@ module.exports = {
 	},
 
 	onStart: async function ({ api, args, message, event, threadsData, usersData, dashBoardData, globalData, threadModel, userModel, dashBoardModel, globalModel, role, commandName, getLang }) {
-		function output(msg) {
+	function output(msg) {
 			if (typeof msg == "number" || typeof msg == "boolean" || typeof msg == "function")
 				msg = msg.toString();
 			else if (msg instanceof Map) {

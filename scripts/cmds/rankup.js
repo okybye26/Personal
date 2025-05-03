@@ -1,101 +1,88 @@
-const deltaNext = global.GoatBot.configCommands.envCommands.rank.deltaNext;
-const expToLevel = exp => Math.floor((1 + Math.sqrt(1 + 8 * exp / deltaNext)) / 2);
-const { drive } = global.utils;
+const fs = require("fs-extra");
+const axios = require("axios");
+const { createCanvas, loadImage } = require("canvas");
 
 module.exports = {
-	config: {
-		name: "rankup",
-		version: "1.4",
-		author: "NTKhang",
-		countDown: 5,
-		role: 0,
-		description: {
-			vi: "Bật/tắt thông báo level up",
-			en: "Turn on/off level up notification"
-		},
-		category: "rank",
-		guide: {
-			en: "{pn} [on | off]"
-		},
-		envConfig: {
-			deltaNext: 5
-		}
-	},
+  config: {
+    name: "rankup",
+    version: "1.1",
+    author: "𝐏𝐫𝐢𝐲𝐚𝐧𝐬𝐡 𝐑𝐚𝐣𝐩𝐮𝐭 + GoatBot v2 Modified by ChatGPT",
+    countDown: 5,
+    role: 0,
+    shortDescription: "Tự động thông báo level up",
+    longDescription: "Thông báo lên cấp kèm hình ảnh",
+    category: "user",
+    guide: "{pn} để bật/tắt thông báo rankup"
+  },
 
-	langs: {
-		vi: {
-			syntaxError: "Sai cú pháp, chỉ có thể dùng {pn} on hoặc {pn} off",
-			turnedOn: "Đã bật thông báo level up",
-			turnedOff: "Đã tắt thông báo level up",
-			notiMessage: "🎉🎉 chúc mừng bạn đạt level %1"
-		},
-		en: {
-			syntaxError: "Syntax error, only use {pn} on or {pn} off",
-			turnedOn: "Turned on level up notification",
-			turnedOff: "Turned off level up notification",
-			notiMessage: "🎉🎉 Congratulations on reaching level %1"
-		}
-	},
+  onStart: async function ({ message, event, threadsData }) {
+    const threadID = event.threadID;
+    const data = await threadsData.get(threadID);
+    const current = data.rankup ?? true;
+    await threadsData.set(threadID, { rankup: !current });
+    message.reply(`${!current ? "✅ Rankup bật thành công!" : "❌ Rankup đã bị tắt!"}`);
+  },
 
-	onStart: async function ({ message, event, threadsData, args, getLang }) {
-		if (!["on", "off"].includes(args[0]))
-			return message.reply(getLang("syntaxError"));
-		await threadsData.set(event.threadID, args[0] == "on", "settings.sendRankupMessage");
-		return message.reply(args[0] == "on" ? getLang("turnedOn") : getLang("turnedOff"));
-	},
+  onChat: async function ({ message, event, usersData, threadsData }) {
+    const { threadID, senderID } = event;
+    const threadData = await threadsData.get(threadID);
+    if (threadData?.rankup === false) return;
 
-	onChat: async function ({ threadsData, usersData, event, message, getLang }) {
-		const threadData = await threadsData.get(event.threadID);
-		const sendRankupMessage = threadData.settings.sendRankupMessage;
-		if (!sendRankupMessage)
-			return;
-		const { exp } = await usersData.get(event.senderID);
-		const currentLevel = expToLevel(exp);
-		if (currentLevel > expToLevel(exp - 1)) {
-			let customMessage = await threadsData.get(event.threadID, "data.rankup.message");
-			let isTag = false;
-			let userData;
-			const formMessage = {};
+    const userData = await usersData.get(senderID);
+    let exp = userData.exp || 0;
+    const oldLevel = Math.floor((Math.sqrt(1 + (4 * exp / 3) + 1) / 2));
+    exp += 1;
+    const newLevel = Math.floor((Math.sqrt(1 + (4 * exp / 3) + 1) / 2));
+    await usersData.set(senderID, { exp });
 
-			if (customMessage) {
-				userData = await usersData.get(event.senderID);
-				customMessage = customMessage
-					// .replace(/{userName}/g, userData.name)
-					.replace(/{oldRank}/g, currentLevel - 1)
-					.replace(/{currentRank}/g, currentLevel);
-				if (customMessage.includes("{userNameTag}")) {
-					isTag = true;
-					customMessage = customMessage.replace(/{userNameTag}/g, `@${userData.name}`);
-				}
-				else {
-					customMessage = customMessage.replace(/{userName}/g, userData.name);
-				}
+    if (newLevel > oldLevel && newLevel !== 1) {
+      const name = userData.name;
+      const msg = `💝 🥀══𝐂𝐨𝐍𝐑𝐀𝐓𝐒══🥀\n\n ⃟══•${name}══⃟❣\n\n  𝐘𝐨𝐔𝐑 𝐋𝐄𝐕𝐄𝐋 𝐈𝐒 ➾ 🍫 ${newLevel}\n\n 🥀🥀🥀🥀🥀🥀🥀🥀🥀🥀🥀`;
 
-				formMessage.body = customMessage;
-			}
-			else {
-				formMessage.body = getLang("notiMessage", currentLevel);
-			}
+      const backgrounds = [
+        "https://i.postimg.cc/Z5VRbCqN/Picsart-24-07-07-08-59-35-199-1.jpg",
+        "https://i.imgur.com/RLpWz6g.jpeg",
+        "https://i.imgur.com/MgPRRSY.jpeg"
+      ];
+      const bg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
 
-			if (threadData.data.rankup?.attachments?.length > 0) {
-				const files = threadData.data.rankup.attachments;
-				const attachments = files.reduce((acc, file) => {
-					acc.push(drive.getFile(file, "stream"));
-					return acc;
-				}, []);
-				formMessage.attachment = (await Promise.allSettled(attachments))
-					.filter(({ status }) => status == "fulfilled")
-					.map(({ value }) => value);
-			}
+      const pathImg = __dirname + `/cache/rankup_${senderID}.png`;
+      const pathAvt = __dirname + `/cache/avt_${senderID}.png`;
 
-			if (isTag) {
-				formMessage.mentions = [{
-					tag: `@${userData.name}`,
-					id: event.senderID
-				}];
-			}
+      try {
+        const avtData = (
+          await axios.get(`https://graph.facebook.com/${senderID}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, {
+            responseType: "arraybuffer"
+          })
+        ).data;
+        fs.writeFileSync(pathAvt, Buffer.from(avtData, "utf-8"));
 
-			message.reply(formMessage);
-		}
-	}
+        const bgData = (await axios.get(bg, { responseType: "arraybuffer" })).data;
+        fs.writeFileSync(pathImg, Buffer.from(bgData, "utf-8"));
+
+        const baseImage = await loadImage(pathImg);
+        const avatar = await loadImage(pathAvt);
+        const canvas = createCanvas(baseImage.width, baseImage.height);
+        const ctx = canvas.getContext("2d");
+
+        ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+        ctx.rotate(-25 * Math.PI / 180);
+        ctx.drawImage(avatar, 37, 120, 125, 130);
+
+        const imageBuffer = canvas.toBuffer();
+        fs.writeFileSync(pathImg, imageBuffer);
+
+        await message.reply({
+          body: msg,
+          attachment: fs.createReadStream(pathImg)
+        });
+
+        fs.unlinkSync(pathImg);
+        fs.unlinkSync(pathAvt);
+      } catch (err) {
+        console.error("Error generating rankup image:", err);
+        message.reply(msg);
+      }
+    }
+  }
 };
