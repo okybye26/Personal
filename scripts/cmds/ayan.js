@@ -1,37 +1,36 @@
 module.exports = {
   config: {
-    name: "ovhi",
-  version: "1.5.2",
-  set usePrefix: false,
-  set hasPermission: "",
-  set role: false,
-  setauthor: "",
-  setshortDescription: "",
-  setLongDescription: "",
-  credits: "",
-    author: "NTKhang || Edited by xos Eren",
-    countDown: 5,
+    name: "eren",
+    version: "1.0.0",
+    usePrefix: false,
     role: 0,
-    shortDescription: "no prefix",
-  category: "",
-    category: "no prefix",
+    author: "Eren",
+    shortDescription: "Responds to 'Ayan' and 'Raad' with style",
+    longDescription: "",
+    category: "owner",
+    credits: "Eren"
   },
 
+  // Add an empty onStart function to resolve the error
   onStart: async function () {},
 
-  onChat: async function ({ event, message, getLang }) {
-    if (event.body && event.body.toLowerCase() === "raad") {
+  onChat: async function ({ event, message }) {
+    if (event.body && (event.body.toLowerCase().includes("ayan") || event.body.toLowerCase().includes("raad"))) {
       return message.reply({
-        body: `┏━━━━━━━━━━━━━━━┓
-بعض لوگ خاموش رہ کر بھی دلوں پر راج کرتے ہیں۔
-ارین ان ہی میں سے ایک ہے۔
-خود پر یقین، باتوں میں وزن، اور نظر میں خواب۔
+        body: `┏━━━━━━◇◆◇━━━━━━┓
 
-میری دنیا، میرے اصول۔
+- Name :  Raad  
 
-My Owner : https://Facebook.com/international.vikhari420
-┗━━━━━━━━━━━━━━━┛`,
-        attachment: await global.utils.getStreamFromURL("https://files.catbox.moe/lnl07l.mp4")
+- From : Dhaka
+
+"Only those who abandon everything can achieve anything."  
+"If you win, you live. If you lose, you die. If you don't fight, you can't win."
+
+╔════════════════╗
+║ Status: Smooth 🥵
+╚════════════════╝
+`,
+        attachment: await global.utils.getStreamFromURL("https://files.catbox.moe/0cjtgp.mp4")
       });
     }
   }
