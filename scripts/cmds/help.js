@@ -1,139 +1,184 @@
-const moment = require("moment");
 const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
+const { getPrefix } = global.utils;
+const { commands, aliases } = global.GoatBot;
+
+const mediaUrls = [
+  "http://remakeai-production.up.railway.app/Remake_Ai/Nyx_Remake_1745777156139.gif",
+  "http://remakeai-production.up.railway.app/Remake_Ai/Nyx_Remake_1745777099916.gif",
+  "http://remakeai-production.up.railway.app/Remake_Ai/Nyx_Remake_1745777021934.gif"
+];
 
 module.exports = {
   config: {
     name: "help",
-    aliases: ["h", "menu", "hp"],
-    version: "2.4",
-    author: "Eren",
+    aliases: ["use"],
+    version: "1.24",
+    author: "Ayanokōji",
     countDown: 5,
     role: 0,
-    shortDescription: "Show all commands",
-    longDescription: "View full list of bot commands in a paginated and detailed format",
+    shortDescription: {
+      en: "Explore command usage 📖",
+    },
+    longDescription: {
+      en: "View detailed command usage, list commands by page, or filter by category ✨",
+    },
     category: "info",
-    guide: "{pn} [command name | page number]"
+    guide: {
+      en: "🔹 {pn} [pageNumber]\n🔹 {pn} [commandName]\n🔹 {pn} -c <categoryName>",
+    },
+    priority: 1,
   },
 
-  onStart: async function ({ api, event, args }) {
-    const prefix = global.GoatBot.config.prefix;
-    const commands = global.GoatBot.commands;
-    const allCommands = Array.from(commands.values());
-
-    // Calculate uptime
-    const uptime = process.uptime();
-    const days = Math.floor(uptime / (60 * 60 * 24));
-    const hours = Math.floor((uptime / (60 * 60)) % 24);
-    const minutes = Math.floor((uptime / 60) % 60);
-    const seconds = Math.floor(uptime % 60);
-    const uptimeString = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-
-    const perPage = 5;
-    let page = 1;
-    let cmdName = null;
-
-    if (args.length > 0) {
-      const input = args[0].toLowerCase();
-      if (isNaN(input)) {
-        cmdName = input;
-      } else {
-        page = parseInt(input);
-      }
-    }
-
-    if (cmdName) {
-      const cmd = allCommands.find(item =>
-        item.config.name.toLowerCase() === cmdName ||
-        (item.config.aliases && item.config.aliases.map(a => a.toLowerCase()).includes(cmdName))
-      );
-
-      if (!cmd) {
-        return api.sendMessage(`✖️ 𝐜𝐨𝐦𝐦𝐚𝐧𝐝 𝐍𝐨𝐭 𝐟𝐨𝐮𝐧𝐝 𝐢𝐧 𝐭𝐡𝐢𝐬 𝐧𝐚𝐦𝐞 '${cmdName}'`, event.threadID, event.messageID);
-      }
-
-      const { name, aliases, author, shortDescription, longDescription, category, guide } = cmd.config;
-      const usage = typeof guide === "string" ? guide.replace(/{pn}/g, prefix + name) : "No usage guide provided.";
-
-      return api.sendMessage(
-        `╭─    𝐂𝐨𝐦𝐦𝐚𝐧𝐝 𝐈𝐧𝐟𝐨    ─╮\n` +
-        `\n` +
-        `⟡ Name: ${name}\n` +
-        `⟡ Aliases: ${aliases?.join(", ") || "None"}\n` +
-        `⟡ Category: ${category}\n` +
-        `⟡ Author: ${author}\n` +
-        `⟡ Description: ${longDescription}\n` +
-        `⟡ Detail: ${usage}\n` +
-        `\n` +
-        ` - OWNER : EREN YEAGER 💦\n` +
-        `─────────────────────`,
-        event.threadID,
-        event.messageID
-      );
-    }
-
-    // Group commands by category
-    const grouped = {};
-    for (const cmd of allCommands) {
-      const cat = cmd.config.category || "uncategorized";
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(cmd.config.name);
-    }
-
-    const categoryList = Object.entries(grouped).map(([cat, cmds]) => ({
-      category: cat,
-      cmds: cmds.join(", ")
-    }));
-
-    const totalPages = Math.ceil(categoryList.length / perPage);
-    if (page < 1 || page > totalPages) page = 1;
-
-    const sliced = categoryList.slice((page - 1) * perPage, page * perPage);
-    const msg = sliced.map(item =>
-      `╭─⟪ ${item.category} ⟫\n│ ${item.cmds}\n╰───────────────`
-    ).join("\n");
-
-    // Download and send video before message
-    const videoUrl = "https://files.catbox.moe/7q400i.mp4";
-    const videoPath = path.join(__dirname, "helpvideo.mp4");
-
+  onStart: async function ({ message, args, event, threadsData, role }) {
     try {
-      const videoRes = await axios.get(videoUrl, { responseType: "arraybuffer" });
-      fs.writeFileSync(videoPath, Buffer.from(videoRes.data, "binary"));
+      const { threadID } = event;
+      const threadData = await threadsData.get(threadID).catch(() => ({}));
+      const prefix = getPrefix(threadID) || "!";
 
-      api.sendMessage({
-        body:
-          `╭── 🎀 𝐁𝐨𝐭 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬 🎀 ──╮\n` +
-          `│ Total: ${allCommands.length} cmds\n` +
-          `│ Uptime: ${uptimeString}\n` +
-          `│ Page: ${page}/${totalPages}\n` +
-          `╰────────────────────╯\n\n` +
-          `${msg}\n\n` +
-          `➤ Type 'help <command name>' to see command info.`,
-        attachment: fs.createReadStream(videoPath)
-      }, event.threadID, () => fs.unlinkSync(videoPath), event.messageID);
-    } catch (err) {
-      console.error("Failed to send video:", err);
-      api.sendMessage(
-        `╭── 🎀 𝐁𝐨𝐭 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬 🎀 ──╮\n` +
-        `│ Total: ${allCommands.length} cmds\n` +
-        `│ Uptime: ${uptimeString}\n` +
-        `│ Page: ${page}/${totalPages}\n` +
-        `╰────────────────────╯\n\n` +
-        `${msg}\n\n` +
-        `➤ Type 'help <command name>' to see command info.`,
-        event.threadID,
-        event.messageID
-      );
+      const ownerInfo = `╭─『 AYANOKŌJI'S TOOL 』\n` +
+        `╰‣ 👑 Admin: Ayanokōji\n` +
+        `╰‣ 🤖 Bot Name: Ayanokōji's Tool\n` +
+        `╰───────────────◊\n`;
+
+      const footerInfo = (totalCommands) =>
+        `╭─『 AYANOKŌJI'S TOOL 』\n` +
+        `╰‣ 📋 Total Commands: ${totalCommands}\n` +
+        `╰‣ 👑 Admin: Ayanokōji\n` +
+        `╰‣ 🌐 IAM FEELINGLESS\n` +
+        `╰───────────────◊\n`;
+
+      const getAttachment = async () => {
+        try {
+          const randomUrl = mediaUrls[Math.floor(Math.random() * mediaUrls.length)];
+          const response = await axios.get(randomUrl, { responseType: "stream" });
+          return response.data;
+        } catch (error) {
+          console.warn("Failed to fetch media:", error.message);
+          return null;
+        }
+      };
+
+      if (args.length === 0 || !isNaN(args[0])) {
+        const categories = {};
+        let totalCommands = 0;
+
+        for (const [name, value] of commands) {
+          if (value.config.role > role) continue;
+          const category = value.config.category?.toLowerCase() || "uncategorized";
+          if (!categories[category]) categories[category] = [];
+          categories[category].push(name);
+          totalCommands++;
+        }
+
+        Object.keys(categories).forEach(cat => {
+          categories[cat].sort((a, b) => a.localeCompare(b));
+        });
+
+        const sortedCategories = Object.keys(categories).sort();
+        const page = parseInt(args[0]) || 1;
+        const itemsPerPage = 5;
+        const totalPages = Math.ceil(sortedCategories.length / itemsPerPage);
+
+        if (page < 1 || page > totalPages)
+          return message.reply(`🚫 Invalid page! Please select between 1 and ${totalPages}.`);
+
+        const start = (page - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pagedCategories = sortedCategories.slice(start, end);
+
+        let msg = `✨ [ Command Guide — Page ${page}/${totalPages} ] ✨\n\n` + ownerInfo;
+
+        for (const category of pagedCategories) {
+          const cmds = categories[category];
+          msg += `╭──── [ ${category.toUpperCase()} ]\n`;
+          msg += `│ ✧ ${cmds.join(" ✧ ")}\n`;
+          msg += `╰───────────────◊\n`;
+        }
+
+        msg += footerInfo(totalCommands);
+
+        return message.reply({
+          body: msg,
+          attachment: await getAttachment()
+        });
+      }
+
+      if (args[0].toLowerCase() === "-c") {
+        if (!args[1]) return message.reply("🚫 Please specify a category!");
+        const categoryName = args[1].toLowerCase();
+        const filteredCommands = Array.from(commands.values()).filter(
+          (cmd) => cmd.config.category?.toLowerCase() === categoryName && cmd.config.role <= role
+        );
+
+        if (filteredCommands.length === 0)
+          return message.reply(`🚫 No commands found in "${categoryName}" category.`);
+
+        const cmdNames = filteredCommands.map(cmd => cmd.config.name).sort((a, b) => a.localeCompare(b));
+        let msg = `✨ [ ${categoryName.toUpperCase()} Commands ] ✨\n\n` + ownerInfo;
+        msg += `╭──── [ ${categoryName.toUpperCase()} ]\n`;
+        msg += `│ ✧ ${cmdNames.join(" ✧ ")}\n`;
+        msg += `╰───────────────◊\n`;
+        msg += footerInfo(cmdNames.length);
+
+        return message.reply({
+          body: msg,
+          attachment: await getAttachment()
+        });
+      }
+
+      const commandName = args[0].toLowerCase();
+      const command = commands.get(commandName) || commands.get(aliases.get(commandName));
+
+      if (!command || command.config.role > role)
+        return message.reply(`🚫 Command "${commandName}" not found or restricted.`);
+
+      const configCommand = command.config;
+      const roleText = roleTextToString(configCommand.role);
+      const author = configCommand.author || "Unknown";
+      const longDescription = configCommand.longDescription?.en || "No description";
+      const guideBody = configCommand.guide?.en || "No guide available.";
+      const usage = guideBody.replace(/{pn}/g, prefix).replace(/{n}/g, configCommand.name);
+
+      let msg = `✨ [ Command: ${configCommand.name.toUpperCase()} ] ✨\n\n`;
+      msg += ownerInfo;
+      msg += `╭─── 📜 Details ───\n` +
+        `│ 🔹 Name: ${configCommand.name}\n` +
+        `│ 📝 Description: ${longDescription}\n` +
+        `│ 🌐 Aliases: ${configCommand.aliases ? configCommand.aliases.join(", ") : "None"}\n` +
+        `│ 🛠 Version: ${configCommand.version || "1.0"}\n` +
+        `│ 🔒 Role: ${roleText}\n` +
+        `│ ⏳ Cooldown: ${configCommand.countDown || 1}s\n` +
+        `│ ✍️ Author: ${author}\n` +
+        `╰───────────────◊\n` +
+        `╭─── 📚 Usage ───\n` +
+        `│ ${usage}\n` +
+        `╰───────────────◊\n` +
+        `╭─── 📌 Notes ───\n` +
+        `│ Customize as needed with ♡ Ayanokōji ♡\n` +
+        `╰───────────────◊\n`;
+      msg += footerInfo(commands.size);
+
+      return message.reply({
+        body: msg,
+        attachment: await getAttachment()
+      });
+
+    } catch (error) {
+      console.error("Help command error:", error);
+      await message.reply("⚠️ An error occurred. Please try again later.");
     }
   },
-
-  onChat: async function ({ api, event, args }) {
-    const input = event.body.trim().toLowerCase();
-    if (input.startsWith("help")) {
-      const newArgs = input.split(" ").slice(1);
-      this.onStart({ api, event, args: newArgs });
-    }
-  }
 };
+
+function roleTextToString(roleText) {
+  switch (roleText) {
+    case 0:
+      return "Everyone 😊";
+    case 1:
+      return "Group Admins 🛡️";
+    case 2:
+      return "Bot Admins 🔧";
+    default:
+      return "Unknown ❓";
+  }
+      }
