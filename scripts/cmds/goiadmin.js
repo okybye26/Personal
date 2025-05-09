@@ -1,35 +1,46 @@
+const axios = require("axios");
+
+let lastResponse = null; // আগের মেসেজ মনে রাখার জন্য
+
 module.exports = {
-	config: {
-		name: "goiadmin",
-		author: "BaYjid",
-		role: 0,
-		shortDescription: "Owner Mention Protection",
-		longDescription: "Prevents unnecessary mentions of BaYjid",
-		category: "BOT",
-		guide: "{pn}"
-	},
+  config: {
+    name: "goiadmin",
+    author: "Eren",
+    role: 0,
+    shortDescription: "Owner Mention Protection",
+    longDescription: "Prevents unnecessary mentions of Eren",
+    category: "BOT",
+    guide: "{pn}"
+  },
 
-	onChat: function({ api, event }) {
-		// Author Verification
-		const authorID = "61574046213712"; // EREN
-		if (event.senderID !== authorID) {
-			const aid = [authorID];
-			for (const id of aid) {
-				if (Object.keys(event.mentions).includes(id)) {
-					// Styled Box Message
-					const msg = [
-						"╔════════════════╗\n║  Boss,  একটু ব্যস্ত আছেন! ⏳\n║ 🕶️ **ডাইরেক্ট** আসুন, পরে কথা বলবো! 💬\n╚════════════════╝",
-						"╔════════════════╗\n║  EREN এখন বিজি! 📌\n║ 🙄 মেনশন না দিয়ে কথা বলো! \n╚════════════════╝",
-						"╔════════════════╗\n║ 💌  মেন্সন না দিয়া পারলে Gf দে 😒\n║ 💢 অই এখনো সিগ্নাল আছে ☹️\n╚════════════════╝",
-						"╔════════════════╗\n║ 🚀 Gf না দিলে \n║ মেন্সন দেওয়ার দরকার নাই 😒\n╚════════════════╝"
-					];
-					return api.sendMessage({ body: msg[Math.floor(Math.random() * msg.length)] }, event.threadID, event.messageID);
-				}
-			}
-		}
-	},
+  onChat: async function({ api, event }) {
+    const authorID = "61574046213712";
 
-	onStart: async function() {
-		console.log("✅ goiadmin Module Loaded Successfully!");
-	}
+    if (event.senderID !== authorID) {
+      const mentions = Object.keys(event.mentions || {});
+      if (mentions.includes(authorID)) {
+        try {
+          const res = await axios.get("https://raw.githubusercontent.com/Ayan-alt-deep/xyc/main/goiadmin.json");
+          const responses = res.data.responses;
+
+          if (!responses || responses.length === 0)
+            return api.sendMessage("❌ JSON ফাঁকা!", event.threadID);
+
+          let filtered = responses.filter(msg => msg !== lastResponse);
+          if (filtered.length === 0) filtered = responses;
+
+          const random = filtered[Math.floor(Math.random() * filtered.length)];
+          lastResponse = random;
+
+          return api.sendMessage({ body: random }, event.threadID, event.messageID);
+        } catch (err) {
+          return api.sendMessage("❌ JSON থেকে ডেটা নিতে সমস্যা হয়েছে!", event.threadID);
+        }
+      }
+    }
+  },
+
+  onStart: async function() {
+    console.log("✅ goiadmin Module Loaded with Anti-Repeat Random System");
+  }
 };
