@@ -1,59 +1,28 @@
-const axios = require("axios");
-
 module.exports = {
-  config: {
-    name: "edit",
-    aliases: [],
-    version: "1.0",
-    author: "Alamin",
-    countDown: 2,
-    role: 2,
-    shortDescription: {
-      en: "Edit image with prompt (reply only)"
-    },
-    longDescription: {
-      en: "Reply to an image and provide a prompt to edit it using AI."
-    },
-    category: "image",
-    guide: {
-      en: "{p}edit <prompt> → Reply to an image and give instruction to edit it."
-    }
-  },
+config: {
+	name: "edit",
+	author: "Tawsif~",
+	category: "image",
+	countDown: 5,
+	role: 0,
+	guide: { en: "edit <prompt> | reply to image"
+}
+},
+onStart: async function({ message, event, args }) {
+const prompt = args.join(" ");
+if (!event.messageReply || !event?.messageReply?.attachments[0]?.url) { return message.reply('reply to an image');
+} else if (!prompt) { return message.reply("❌ | provide a prompt");
+}
+const replyImageUrl = event.messageReply.attachments[0].url;	message.reaction("⏳", event.messageID);
+try {
+const t = new Date().getTime();
+		let url = `https://tawsifz-gemini.onrender.com/edit?texts=${encodeURIComponent(prompt)}&url=${encodeURIComponent(replyImageUrl)}`;
 
-  onStart: async function ({ message, event, args, api }) {
-    const prompt = args.join(" ");
-    if (!prompt) return message.reply("Please provide a prompt for image editing.");
-    if (!event.messageReply || !event.messageReply.attachments || event.messageReply.attachments.length === 0)
-      return message.reply("Please reply to an image.");
+await message.reply({ attachment: await global.utils.getStreamFromURL(url, 'edit.png'), body: `✅ | Here's your image ✨\n🕔 | Time taken: ${(new Date().getTime() -t)/1e3} seconds`,
+});
 
-    const attachment = event.messageReply.attachments[0];
-    if (attachment.type !== "photo") return message.reply("Please reply to a photo only.");
-
-    // React with ⏳
-    api.setMessageReaction("⏳", event.messageID, () => {}, true);
-
-    try {
-      const imgUrl = attachment.url;
-      const apiUrl = `https://api-new-dxgd.onrender.com/edit?prompt=${encodeURIComponent(prompt)}&url=${encodeURIComponent(imgUrl)}`;
-
-      const res = await axios.get(apiUrl);
-      const imageUrl = res.data.imageUrl;
-
-      if (!imageUrl) return message.reply("No image returned from API.");
-
-      // Send image
-      message.reply({
-        body: "",
-        attachment: await global.utils.getStreamFromURL(imageUrl)
-      });
-
-      // React with ✅
-      api.setMessageReaction("✅", event.messageID, () => {}, true);
-
-    } catch (err) {
-      console.error(err);
-      message.reply("Image edit failed.");
-      api.setMessageReaction("❌", event.messageID, () => {}, true);
-    }
-  }
-};
+	message.reaction("✅", event.messageID);
+} catch (error) { message.send("❌ | " + error.message);
+		}
+	}
+}
