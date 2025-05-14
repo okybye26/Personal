@@ -33,8 +33,8 @@ module.exports = {
 
   sendInfo: async function (message) {
     const botName = "🕸️ 𝐒𝐩𝐢𝐝𝐞𝐘🕷️";
-    const authorName = "𝐑𝐚𝐚𝐝";
-    const authorFB = "𝐑𝐚 𝐀𝐚𝐝";
+    const authorName = "Ma-Hi";
+    const authorFB = "fb.com/mahi68x";
     const authorInsta = "raadx102";
     const status = "𝗦𝗶𝗻𝗴𝗹𝗲";
 
@@ -50,7 +50,8 @@ module.exports = {
     const videoUrl = "https://files.catbox.moe/d5ktl4.mp4";
 
     const body = `
-╔══『 𝗕𝗢𝗧 』══╗
+╔══『   𝗕𝗢𝗧    』══╗
+
 ┏━━━━━━━━━━━━━━━━┓
 ┃ 🧑 Admin Info
 ┃ ╰➤ Name: ${authorName}
