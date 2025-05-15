@@ -47,10 +47,9 @@ module.exports = {
     const hours = Math.floor((uptime / (60 * 60)) % 24);
     const uptimeString = `${hours}h ${minutes}m ${seconds}s`;
 
-    const videoUrl = "https://files.catbox.moe/d5ktl4.mp4";
+    const videoUrl = "https://files.catbox.moe/t73j7v.mp4";
 
     const body = `
-╔══『   𝗕𝗢𝗧    』══╗
 
 ┏━━━━━━━━━━━━━━━━┓
 ┃ 🧑 Admin Info
