@@ -1,7 +1,7 @@
 module.exports = {
   config: {
     name: "unsend",
-    aliases: ["un", "uns", "unsef"],
+    aliases: ["un", "uns", "unsef", "u"],
     version: "1.1",
     author: "NTKhang || Edited by Eren",
     countDown: 5,
@@ -30,19 +30,23 @@ module.exports = {
     }
   },
 
-  // No prefix required, just reply to unsend a message
   onStart: async function ({ message, event, api, getLang }) {
     if (!event.messageReply || event.messageReply.senderID != api.getCurrentUserID())
       return message.reply(getLang("syntaxError"));
     message.unsend(event.messageReply.messageID);
   },
 
-  // Detects a message reply and unsends it automatically
   onChat: async function ({ event, message, api, getLang }) {
-    if (event.body && event.body.toLowerCase() === "un") {
-      if (!event.messageReply || event.messageReply.senderID != api.getCurrentUserID())
-        return message.reply(getLang("syntaxError"));
-      message.unsend(event.messageReply.messageID);
+    const validCommands = ["un", "uns", "unsend", "u"];
+    const body = event.body?.toLowerCase();
+
+    if (
+      validCommands.includes(body) &&
+      event.messageReply &&
+      event.messageReply.senderID == api.getCurrentUserID()
+    ) {
+      return message.unsend(event.messageReply.messageID);
     }
+    // Ignore all other messages
   }
 };
