@@ -1,33 +1,37 @@
 module.exports = {
   config: {
     name: "prefixmode",
-    aliases: ["pfxmode", "pfx"],
-    version: "1.0",
+    aliases: ["noprefix", "pfxmd"],
+    version: "1.1",
     author: "Eren",
+    countDown: 5,
     role: 1,
-    shortDescription: "Set prefix mode",
-    longDescription: "Set prefix mode to onlyPrefix, noPrefix, or both",
+    shortDescription: "Change prefix mode for this thread",
+    longDescription: "Cycle between onlyPrefix, noPrefix, and both modes",
     category: "config",
-    guide: "{p}prefixmode <onlyPrefix|noPrefix|both>"
+    guide: "{p}prefixmode"
   },
 
-  onStart: async function ({ message, event, args, threadsData }) {
+  onStart: async function ({ message, event, threadsData }) {
     const threadID = event.threadID;
-    const mode = args[0];
-    const validModes = ["onlyPrefix", "noPrefix", "both"];
 
-    if (!validModes.includes(mode)) {
-      return message.reply(`Use one of: ${validModes.join(", ")}`);
+    let threadData = await threadsData.get(threadID);
+    if (!threadData) {
+      await threadsData.set(threadID, { data: {} });
+      threadData = await threadsData.get(threadID);
     }
 
-    const threadData = await threadsData.get(threadID) || {};
+    const current = threadData.data?.prefixMode || "onlyPrefix";
+    const modes = ["onlyPrefix", "noPrefix", "both"];
+    const nextMode = modes[(modes.indexOf(current) + 1) % modes.length];
+
     await threadsData.set(threadID, {
       data: {
         ...threadData.data,
-        prefixMode: mode
+        prefixMode: nextMode
       }
     });
 
-    return message.reply(`✅ Prefix mode set to: ${mode}`);
+    message.reply(`✅ Prefix mode is now set to: ${nextMode}`);
   }
 };
