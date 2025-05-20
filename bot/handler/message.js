@@ -13,9 +13,7 @@ module.exports = async function ({ message, event, threadsData, commandModules, 
     if (
       (prefixMode === "onlyPrefix" && !hasPrefix) ||
       (prefixMode === "noPrefix" && hasPrefix)
-    ) {
-      return;
-    }
+    ) return;
 
     if (!commandName) return;
 
