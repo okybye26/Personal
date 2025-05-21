@@ -14,7 +14,7 @@ module.exports = {
   },
 
   onChat: async function({ api, event }) {
-    const authorID = "61574046213712";
+    const authorID = "61576212342334";
 
     if (event.senderID !== authorID) {
       const mentions = Object.keys(event.mentions || {});
