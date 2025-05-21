@@ -9,8 +9,8 @@ const API_SOURCE = "https://raw.githubusercontent.com/Ayan-alt-deep/xyc/main/bas
 
 module.exports = {
   config: {
-    name: "apibin",
-    aliases: ["binup"],
+    name: "exbin",
+    aliases: ["bin"],
     version: "3.2",
     author: "Eren",
     countDown: 5,
