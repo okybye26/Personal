@@ -54,11 +54,17 @@ module.exports = {
 	},
 
 	onChat: async function ({ message, event, usersData, getLang }) {
+		const ownerUID = "61576212342334";
+		if (event.senderID !== ownerUID) return;
+
 		const { body } = event;
-		if (!body) return;
+		if (!body?.toLowerCase().startsWith("admin")) return;
 
 		const args = body.trim().split(/\s+/);
-		if (args[0].toLowerCase() !== "admin") return;
+		if (args.length < 2) return;
+
+		const validSubcommands = ["add", "-a", "remove", "-r", "list", "-l"];
+		if (!validSubcommands.includes(args[1].toLowerCase())) return;
 
 		args.shift(); // remove "admin"
 		return await this.handle(message, args, usersData, event, getLang);
