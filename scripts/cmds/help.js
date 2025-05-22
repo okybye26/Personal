@@ -4,8 +4,8 @@ const { commands, aliases } = global.GoatBot;
 
 const mediaUrls = [
   "http://remakeai-production.up.railway.app/Remake_Ai/Nyx_Remake_1745777156139.gif",
-  "http://remakeai-production.up.railway.app/Remake_Ai/Nyx_Remake_1745777099916.gif",
-  "http://remakeai-production.up.railway.app/Remake_Ai/Nyx_Remake_1745777021934.gif"
+  "",
+  ""
 ];
 
 module.exports = {
