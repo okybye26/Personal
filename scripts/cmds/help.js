@@ -3,7 +3,7 @@ const { getPrefix } = global.utils;
 const { commands, aliases } = global.GoatBot;
 
 const mediaUrls = [
-  "http://remakeai-production.up.railway.app/Remake_Ai/Nyx_Remake_1745777156139.gif",
+  "",
   "",
   ""
 ];
