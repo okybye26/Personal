@@ -37,18 +37,18 @@
     "ignoreCommand": []
   },
   "adminBot": [
-    "61576212342334",
+    "100022776827595",
     ""
   ],
   "whiteListMode": {
     "enable": false,
     "whiteListIds": [
-      "61576212342334"
+      "100022776827595"
     ],
     "notes": "if you enable this feature, only the ids in the whiteListIds section can use the bot"
   },
   "nickNameBot": "🕸️ SpideY  🕷️",
-  "prefix": "-",
+  "prefix": "+",
   "BaYjidnapi": "",
   "api": "",
   "api2": "",
