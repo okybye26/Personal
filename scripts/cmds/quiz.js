@@ -2,7 +2,7 @@ const axios = require('axios');
 
 module.exports = {
   config: {
-    name: "quiz",
+    name: "quiz2",
     aliases: ["trivia"],
     version: "1.0",
     author: "UPoL 🐔",
